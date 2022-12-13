@@ -1,13 +1,6 @@
 #include <stdio.h>
 #include <math.h>
 
-// double teylor(double d, int iter){
-//     iter++;
-//     if (iter=100){
-//         return d;
-//     }
-// }
-
 int main(){
     double ans, f;
     double eps = 1;
