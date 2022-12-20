@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-
 int ToLower(int c) {
     return (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c; 
 }
@@ -21,7 +20,7 @@ int getint(){
 }
 
 
- unsigned int getsetword(){
+ unsigned int char_to_set(){
     int c;
     unsigned int set = 0b0;
     while (1){
@@ -39,25 +38,38 @@ int getint(){
 
 int main() {
     int n;
-    int count = 0;
+    int count_glasnie = 0;
+    int count_soglasnie = 0;
     printf("Enter words ammount: ");
     n = getint();
-    unsigned int glasnieonly = 0b01000100000100000100010001;
-    unsigned int setpred = getsetword();
+                           //zyxwvutsrqponmlkjihgfedcba
+    unsigned int glasnie = 0b01000100000100000100010001;
+                             //zyxwvutsrqponmlkjihgfedcba
+    unsigned int soglasnie = 0b10111011111011111011101110;
+    unsigned int set_old = char_to_set();
     for (int i = 0; i < n-1; ++i) {
-        unsigned int setnew = getsetword();
-        unsigned int res1 = setpred & glasnieonly;
-        unsigned int res2 = setnew & glasnieonly;
-        //printf("%d %d\n", setpred, setnew);
-        //printf("%d %d\n", res1, res2);
+        unsigned int set_new = char_to_set();
+        unsigned int res1 = set_old & glasnie;
+        unsigned int res2 = set_new & glasnie;
         if ((res1 & res2) != 0) {
-            count +=1;
+            count_glasnie +=1;
         }
-        setpred = setnew;
+
+        res1 = set_old & soglasnie;
+        res2 = set_new & soglasnie;
+        if ((res1 & res2) != 0) {
+            count_soglasnie +=1;
+        }
+        set_old = set_new;
     }
-    if (count != 0) {
-        printf("Yes, thes words exist, the ammount of pairs: %d", count);
+    if (count_glasnie != 0) {
+        printf("GLASNIE - YES\n");
     }else{
-        printf("No, words letters combinations dont match");
+        printf("GLASNIE - N0\n");
+    }
+    if (count_soglasnie != 0) {
+        printf("SOGLASNIE - YES\n");
+    }else{
+        printf("SOGLASNIE - N0\n");
     }
 }
