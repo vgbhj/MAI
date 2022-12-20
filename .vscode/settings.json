@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "\"editor.fontFamily\"": "\"JetBrains Mono NL\"",
-        "hash_map": "c",
-        "bitset": "c",
-        "algorithm": "c"
-    }
-}
