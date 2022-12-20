@@ -10,7 +10,7 @@ bool at_the_border(int next_x, int next_y, int n){
 }
 
 int main() {
-    FILE* file = fopen("test3.txt", "r");
+    FILE* file = fopen("test.txt", "r");
     int n;
     fscanf(file, "%d", &n);
     int arr[n+1][n+1];

@@ -26,8 +26,11 @@ int getint(){
     while (1){
     c = getchar();
     c = ToLower(c);
-    if (c == ' ' || c == EOF || c == '\n') {
-        break;
+    if(c == ' ' ){
+        continue;
+    }
+    else if (c == EOF || c == '\n') {
+        break;;
     }
     else{
         set = set | (1 << (c - 'a'));
