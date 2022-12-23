@@ -6,6 +6,8 @@ vessel = conn.space_center.active_vessel
 print(vessel.name)
 srf_frame = vessel.orbit.body.reference_frame
 
+f = open("flight.log", "a")
+
 while True:
     mass = int(vessel.mass)
     dry_mass = int(vessel.dry_mass)
@@ -21,5 +23,5 @@ while True:
     print(f"    Specific impulse: {round(specific_impulse, 1)}")
     print(f"    Vacuum specific impulse: {round(vacuum_specific_impulse, 1)}")
     print(f"    Altitude: {int(vessel.flight(srf_frame).surface_altitude)} m")
-    print(f"    TWR: {thrust/mass/9.8}")
+    print(f"    TWR: {round(thrust*1000/mass/9.8,2)}")
     time.sleep(1)
