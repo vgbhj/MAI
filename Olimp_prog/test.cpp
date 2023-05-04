@@ -1,46 +1,72 @@
 #include <bits/stdc++.h>
 
-using namespace std; 
+using namespace std;
 
-const int64_t MOD = 1000000000+7; 
+class segtree{
+    int n;
+    vector<int> data, delay;
 
-int64_t fact(int n){
-    int64_t factorial = 1;
-    for(int i = 1; i <= n; ++i) {
-            factorial = (factorial*i)%MOD;
+    segtree(const vector<int>& v) : n(v.size()), data(4 * n), delay(4 * n){
+        build(1, 1, n, v);
+    }
+
+    segtree(int _n) : n(_n), data(4 * n), delay(4 * n){
+
+    } 
+
+    void build(int id, int l, int r, const vector<int>& v){
+        if(l == r){
+            data[id] = v[l -1];
         }
-    return factorial;
-}
+        int m = (l + r) / 2;
+        build(id * 2, l , m, v);
+        build(id * 2 + 1, m + 1, r, v);
+        data[id * 2] = max(data[id * 2], data[id * 2 +1]);
+    }
+
+    void set(int p, int x){
+        set(1, 1, n, p, x);
+    }
+
+    void set(int id, int l, int r, int p, int x){
+        if(l == r){
+            data[id] = x;
+            return;
+        }
+        int m = (l + r) / 2;
+        if(p <= m){
+            set(id * 2, l, m, p, x);
+        }
+        else{
+            set(id * 2 + 1, m + 1, r, p, x);
+        }
+        data[id * 2] = max(data[id * 2], data[id * 2 + 1]);
+    }
+
+    int get(int l, int r){
+        return get(1, 1, n, l, r);
+    }
+    int get(int id, int l, int r, int ql, int qr){
+        if(ql <= l and r <= qr){
+            return data[id];
+        }
+        int m = (l + r) / 2;
+        if(r <= m){
+            return get(id * 2, l, m, ql, qr);
+        }
+        if(l > m){
+            return get(id * 2 + 1, m + 1, r, ql, qr);
+        }
+
+        return max(get(id * 2, l, m, ql, qr), get(id * 2 + 1,m + 1, r, ql, qr));
+    }
+};
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(0);
 
-    string s;
-    cin >> s;
-    int o=0, c=0; 
-    for(auto elem : s){
-        if(elem == '('){
-            o++;
-        }
-        else{
-            c++;
-        }
-    }
-    int mx = max(o,c);
-    int mn = min(o,c);
-    //Debug
-    // cout << mn << " " << mx << "\n";
-    int64_t ans = 0;
-    for(int i=1; i<=mn; ++i){
-        ans += ((fact(mn)/(fact(mn-i)*fact(i))) * (fact(mx)/(fact(mx-i)*fact(i))))%MOD;
-        //Debug
-        // cout << fact(mn) << " " << fact(mn-i) << " " <<  fact(i) << "\n"; 
-        // cout << fact(mn)/(fact(mn-i)*fact(i)) << "\n";
-        // cout << fact(mx)/(fact(mx-i)*fact(i)) << "\n";
-        // cout << ans << "\n";
-        // cout << "=====\n";
-    }
-
-    cout << ans%MOD;
+    cin >> n;
+    vector<int> a(n);
+    
 }

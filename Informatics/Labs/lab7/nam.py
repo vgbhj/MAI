@@ -13,7 +13,7 @@ DARK_THEME = True
 
 from pathlib import Path
 
-PATH_TO_BOOK = Path('rules.txt')
+PATH_TO_BOOK = Path('test.txt')
 
 
 class RuleBook:
