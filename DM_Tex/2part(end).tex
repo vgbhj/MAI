@@ -1,0 +1,300 @@
+\documentclass[11pt,reqno]{amsart}
+%        Обязательные пакеты
+\usepackage[T2A]{fontenc}
+\usepackage[russian,english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{izvuz7}
+\usepackage{amssymb,amsmath,amsthm,amsfonts}
+\usepackage{graphicx}
+
+%        Дополнительные пакеты
+% \usepackage\bigl[mathscr\bigr]{eucal} % = \mathscr{}, "выпрямленный" рукописный
+%        Операторы, например
+% \DeclareMathOperator{\const}{const}
+% \DeclareMathOperator*{ }{ }  %% оператор с пределами
+% \newcommand{\U}{\mathfrak{U}}
+% ^^^^^^^^^^^ такие конструкции желательно использовать как можно меньше!
+
+
+% ВНИМАНИЕ: Из окончательного варианта файла убрать все неиспользуемые окружения!
+
+%        Курсивные окружения
+\theoremstyle{plain}
+\newtheorem{theorem}{Теорема}
+\newtheorem{lemma}{Лемма}
+\newtheorem{proposition}{Предложение}
+\newtheorem{axiom}{Аксиома}
+\newtheorem{conjecture}{Гипотеза}
+%% и другие по аналогии при необходимости
+
+%        Подчиненные счетчики в окружениях
+%\newtheorem{lemmac}\bigl[theorem\bigr]{Лемма}
+%\newtheorem{propositionc}\bigl[theorem\bigr]{Предложение}
+%\newtheorem{conjecturec}\bigl[theorem\bigr]{Гипотеза}
+% Теорема 1, предложение 2, гипотеза 3...
+
+%        Двойная нумерация окружений
+\newtheorem{theorems}{Теорема}[section]
+\newtheorem{lemmas}{Лемма}[section]
+\newtheorem{propositions}{Предложение}[section]
+% Теорема 1.1, лемма 1.1, предложение 1.1 и т.п.
+
+%        Ненумерованные окружения
+\newtheorem*{theoremnn}{Теорема}
+% Просто теорема (без номера)
+
+%        Окружения с прямым шрифтом
+\theoremstyle{definition}
+\newtheorem{definition}{Определение}
+\newtheorem{corollary}{Следствие}
+\newtheorem{remark}{Замечание}
+\newtheorem{example}{Пример}
+
+%        Аналогично ненумерованные с прямым шрифтом
+
+% \numberwithin{equation}{section}  %%  для нумерации уравнений типа (1.1)
+
+%        Заголовок статьи.
+\tit{\MakeUppercase{НЕОБХОДИМЫЕ И ДОСТАТОЧНЫЕ УСЛОВИЯ ЭКСТРЕМУМА ДЛЯ ПОЛИНОМОВ И СТЕПЕННЫХ РЯДОВ В СЛУЧАЕ ДВУХ ПЕРЕМЕННЫХ}}
+% \shorttit{\MakeUppercase{Сокращенный заголовок статьи для нечетных страниц}} % верхний колонтитул на нечетных страницах
+ 
+%        Автор(ы), инициалы, фамилия
+\author{\MakeUppercase{В.Н.\,НЕФЁДОВ}}
+ 
+
+\god{202\_}         %% заполняется редакцией
+\nomer{\textnumero\,\_}     %% заполняется редакцией
+
+\setcounter{page}{33}
+\pp{\pageref{firstpage}--\pageref{lastpage}}
+
+\begin{document}
+\Russian
+Покажем теперь, что в случае выполнения условия 4), где $l = 1$, хотя бы при одном $u_0 \in U_{{}^{\textbf{\textasciitilde}}p}(A)$, $0_{(2)}$ не является точкой локального минимума полинома ${}^{\textbf{\textasciitilde}}p (x, y)$ (а тем самым и $p(x, y)$). Для простоты обозначений считаем, что ${{}^{\textbf{\textasciitilde}}}p(x, y) = p(x, y)$.
+
+Таким образом, рассматриваем случай, когда (см. (2)-(4), (8)-(10))%сюда надо вставить ссылки на формулы во время склейки всех частей документа в одну.
+\begin{align*}
+    &p(x, y) = \varphi_1^A(x,y) + \varphi_2^A(x, y) = x^{\alpha_1}y^{\beta_1}g_1^A(u)+x^{\gamma_1}y^{\eta_1}g_2^A(u)=\\
+    &=x^{\alpha_1}y^{\beta_1}(u-u_0)^k\overline{g}_1^A(u) + x^{\chi_1}y^{\eta_1}(u-u_0)\overline{g}_2^A(u), k \in 2\boxtimes
+\end{align*}
+и при этом, используя (27), (28), имеем:%сюда надо вставить ссылки на формулы во время склейки всех частей документа в одну.
+\begin{align*}
+    &p(x, y) = (y^{A_1} - u_0x^{A_2})^{kA}\overline{\varphi}_1\;(x, y) + (y^{A_1} - u_0x^{A_2})^A\overline{\varphi}_2\;(x, y),\\
+    &\overline{\varphi}_1^A\;(x,y) = x^{\alpha_1-r_1A_2}y^{\beta_1}\Bigl[\, x^{\overline{r_1}A_2}\overline{g}_1^A(x^{-A_2}y^{A_1})\Bigr]\, = x^{\alpha_1-kA_2}y^{\beta_1}\overline{g}^A_1(x^{-A_2}y^{A_1}),\\
+    &\overline{\phi_2}^A\;(x,y) = x^{\chi_1-r_2A_2}y^{\eta_1}\Bigl[\, x^{(r_2-1)A_2}\overline{g}_2(x^{-A_2}y^{A_1})\Bigr]\, = x^{\chi_1-A_2}y^{\eta_1}\overline{g}_2(x^{-A_2}y^{A_1}).
+\end{align*}
+
+Пусть для некоторых $c_0 \neq 0, d_0 \neq 0$ выполняется $u_0 = c_0^{e_1}d_0^{e_2} = c_0^{-A_2}d_0^{A_1}$. Рассмотрим многочлены:
+\[x(t) = c_0t^{A_1}, y(t) = d_0t^{A_2}\pm d_0t^{A_2+\kappa} = d_0t^{A_2}(1 \pm t^\kappa), k \in \boxtimes\]
+
+Тогда (конкретные значения некоторых величин: $h_1,\dots,h_5,\sigma_1,\dots,\sigma_5$ не имеют значения)
+\begin{align*}
+    &\bigl[\,x(t)\,\bigr]^{-A_2} = \Bigl[\,c_0t^{A_1}\,\Bigr]^{-A_2} = (c_0)^{-A_2}t^{-A_1A_2}, \bigl[\,y(t)\,\bigr]^{A_1} = \Bigl[\,d_0t^{A_2}(1 \pm t^\kappa)\,\Bigr]^{A_1} = (d_0)^{A_1}t^{A_1A_2} + o(t^{A_1A_2}),\\
+    &\bigl[\,x(t)\,\bigr]^{-A_2}\bigl[\,y(t)\,\bigr]^{A_1} = (c_0)^{-A_2}(d_0)^{A_1} + O(t) = u_0 + O(t),\\
+    &\overline{g}_1^A\Bigl(\,\bigl[\,x(t)\,\bigr]^{-A_2}\bigl[\,y(t)\,\bigr]^{A_1}\Bigr)\, = \overline{g}_1^A(u_0 + O(t)) = \overline{g}_1^A(u_0) + O(t),\\
+    &\overline{g}_2^A\Bigl(\,\bigl[\,x(t)\,\bigr]^{-A_2}\bigl[\,y(t)\,\bigr]^{A_1}\Bigr)\, = \overline{g}_2^A(u_0 + O(t)) = \overline{g}_2^A(u_0) + O(t),\\
+    &\overline{\varphi}_1^A\bigl(\,x(t), y(t)\bigr)\, = \bigl[\,x(t)\bigr]^{\alpha_1-kA_2}\,\bigl[\,y(t)\bigr]^{\beta_1}\,\overline{g}_1^A\Bigl(\,\bigl[\,x(t)\,\bigr]^{-A_2}\bigl[\,y(t)\,\bigr]^{A_1}\Bigr)\, = h_1t^{\sigma_1} + o\bigl(t^{\sigma_1}\bigr), h_1 > 0, \sigma_1 \in \boxtimes,\\
+    &\overline{\varphi}_2^A\bigl(\,x(t), y(t)\bigr)\, = \bigl[\,x(t)\bigr]^{\chi_1-A_2}\,\bigl[\,y(t)\bigr]^{\eta_1}\,\overline{g}_2^A\Bigl(\,\bigl[\,x(t)\,\bigr]^{-A_2}\bigl[\,y(t)\,\bigr]^{A_1}\Bigr)\, = h_2t^{\sigma_2} + o\bigl(t^{\sigma_2}\bigr), h_2 \neq 0, \sigma_2 \in \boxtimes,\\
+    &\bigl[\,y(t)\bigr]^{A_1} - u_0\bigl[\,x(t)\bigr]^{A_2}\, = (d_0)^{A_1}\,t^{A_1A_2}\bigl(1 \pm t^\kappa\bigr)^{A_1}\, - u_0(c_0)^{A_2}t^{A_1A_2} =\\
+    &= \bigl(d_0\bigr)^{A_1}\,t^{A_1A_2}\, \bigl(\, 1 \pm A_1t^\kappa + o(t^\kappa\bigr)\,)\,-u_0\,(c_0)^{A_2}\,t^{A_1A_2} =\\
+    &=\Bigl[\,\bigl(d_0\bigr)^{A_1} - u_0\,(c_0)^{A_2}\Bigr]t^{A_1A_2}\, \pm \bigl(d_0\bigr)^{A_1}\; A_1t^{A_1A_2+\kappa} + o(t^{A_1A_2 + \kappa}) = \pm \bigl(d_0\bigr)^{A_1}\; A_1t^{A_1A_2+\kappa} + o\bigl(t^{A_1A_2+\kappa}\bigr).
+\end{align*}
+Соответственно,
+\[(\,\bigl[\,y(t)\bigr]^{A_1}\, -\,u_0\,\bigl[\,x(t)\bigr]^{A_2}\,)^k\, = h_3t^{\sigma_3+k\kappa} + o(t^{\sigma_3+k\kappa}), h_3 > 0, \sigma_3 \in \boxtimes.\]
+Таким образом, получаем
+\begin{equation}
+\label{nef:eq:1}
+\begin{gathered}
+    p(x(t),y(t)) = \Bigl(\bigl[\,y(t)\bigr]^{A_1}\, - u_0\,\bigl[\,x(t)\bigr]^{A_2}\,\Bigr)^k \overline{\varphi}_1^A(x(t), y(t)) + \\
+    + \Bigl(\bigl[y(t)\bigr]^{A_1} - u_0\,\bigl[x(t)\bigr]^{A_2}\Bigr)\overline{\varphi}_2^A(x(t),y(t)) = h_4t^{\sigma_4+k\kappa} + h_5t^{\sigma_5+\kappa} + o\bigl(t^{\sigma_4+k\kappa}\bigr) + o\bigl(t^{\sigma_5+\kappa}\bigr),
+\end{gathered}
+\end{equation}
+где при соответствующем выборе знака в многочлене $y(t) = d_0t^{A_2}\,\bigl(1\pm t^\kappa\bigr)$ выполняется $h_4 \neq 0, h_5 < 0$, $\sigma_4, \sigma_5 \in \boxtimes$. Выберем число $\kappa \in \boxtimes$ столь большим, чтобы
+\[\sigma_4 + k\kappa > \sigma_5 + \kappa.\]
+Это можно сделать, поскольку $k \geq 2$ (т.е. достаточно взять любое $\kappa > \sigma_5-\sigma_4$). Тогда из~\eqref{nef:eq:1} получаем
+\[p(x(t),y(t)) = h_5t^{\sigma_5+\kappa} + o(t^{\sigma_5+\kappa}), h_5 < 0,\]
+т.е. выполняется условие (У3), а следовательно, $0_{(2)}$ не является точкой локального минимума полинома $p(x, y)$.
+\section{\textbf{Заключение}}
+Используются предложенные в предыдущих работах методы~\cite{nef:1,nef:2,nef:3} для исследования полиномов (или степенных рядов) от двух переменных на наличие локального экстремума в стационарной точке. Предложен легко реализуемый на практике алгоритм и его модификации. Основные шаги этого алгоритма основываются на вычислении действительных корней многочлена от одной переменной, а также на решении некоторых других достаточно простых практически реализуемых задач. Тем не менее, все же остаются случаи, когда этот алгоритм «не работает». Для таких случаев предлагается метод «подстановки многочленов с неопределенными коэффициентами», используя который, в частности, удалось описать алгоритм, позволяющий однозначно ответить на вопрос о локальном минимуме в стационарной точке для полинома, являющегося суммой двух $A$-квазиоднородных форм, где $A$ –- двухмерный вектор, компоненты которого являются натуральными числами.
+
+%%%%%%%%%%%%%     Литература    %%%%%%%%%%%%%
+
+\begin{thebibliography}{99}  %% {9} если используется от 1 до 9 ссылок
+
+\RBibitem{nef:1}	
+\by Нефедов В.Н.													  % Фамилия2 И.О.
+\paper Необходимые и достаточные условия локального минимума в полиномиальных задачах минимизации. % название статьи
+\jour М.: МАИ. 1989. 64с. – Деп. в ВИНИТИ 02.11.89 №6830–В89% название журнала
+
+\RBibitem{nef:2}
+\by Нефедов В.Н.
+\paper Об оценивании погрешности в выпуклых полиномиальных задачах 
+оптимизации.
+\jour  ЖВМ и МФ. 1990. Т.30
+\issue №2
+\pages С.200--216
+
+
+\RBibitem{nef:3}
+\by Нефедов В.Н.
+\paper Необходимые и достаточные условия экстремума в сложных задачах оптимизации систем, описываемых полиномиальными и аналитическими функциями
+оптимизации
+\jour Известия РАН. Теория и системы управления
+\yr 2023
+\issue №2
+
+
+\RBibitem{nef:4}
+\by Васильев Ф.П. 
+\book Численные методы решения экстремальных задач
+\publaddr М.
+\publ Наука
+\yr 1980
+
+
+\Bibitem{nef:5}
+\by Viktor Nefedov
+\paper Methods and Algorithms for Determining the Main Quasi-homogeneous Forms of Polynomials and Power Series
+\jour Matec Web of Conferences 362, 01017
+\yr 2022
+\URL https://doi.org/10.1051/matecconf/202236201017
+
+
+\RBibitem{nef:6}
+\by Нефедов В.Н. 
+\paper Необходимые и достаточные условия экстремума в аналитических задачах оптимизации
+\jour Тр. МАИ. Математика. №33
+\yr 2009
+\pages 32с.
+
+
+\RBibitem{nef:7}
+\by Гиндикин С.Г. 
+\paper Энергетические оценки, связанные с многогранником Ньютона
+\jour Тр. Москов. матем. об–ва. T.31
+\yr 1974
+\pages C.189-236
+
+\RBibitem{nef:8}
+\by Брюно А.Д. 
+\book Степенная геометрия в алгебраических и дифференциальных уравнениях.
+\publaddr М.
+\publ Наука. Физматлит
+\yr 1998
+
+\RBibitem{nef:9}
+\by Волевич Л.Р.,
+Гиндикин С.Г.
+\paper Метод многогранника Ньютона в теории дифференциальных уравнений в частных производных
+\jour М.: Изд-во Эдиториал УРСС
+\yr 2002
+\pages 312с.
+
+\RBibitem{nef:10}
+\by Хованский А. Г.
+\book Многогранники и алгебра  
+\publ Тр. ИСА РАН
+\yr 2008
+\bookvol 38
+
+\RBibitem{nef:11}
+\by Нефедов В.Н.
+\paper Об одном методе исследования полинома на знакоопределенность в положительном ортанте
+\jour  Тр. МАИ. Математика
+\yr 2006
+\issue №22
+\pages 43с.
+
+\end{thebibliography}
+%% Информация об авторе:
+% высшее учебное заведение (Академия наук, НИИ, ВЦ и т.д.), \\ служебный адрес (улица, дом, город, индекс, страна),
+% e-mail
+% например:
+
+% \fullauthor{Имя Отчество Фамилия}
+% \address{Казанский  федеральный  университет,\\
+% ул. Кремлевская, д. 18, г. Казань, 420008, Россия,}
+% \email{***@***.ru}
+
+% % То же для второго автора
+% %\fullauthor{ }
+% %\address{ }
+% %\email{ }
+
+% % для третьего и т.д.
+
+% \vskip0.3truecm
+% \begin{center}
+% \textsl{Инициалы\,Фамилия на английском}\\\bigl[2mm\bigr]
+% \textbf{Название на английском}
+% \end{center}
+
+% %% Данные о статье на английском языке:
+% \vskip0.3truecm
+% \hbox to \hsize{\hss {\vbox{\hsize=150truemm
+% \noindent \small {\sl \small Abstract.} 
+% % АННОТАЦИЯ НА АНГЛИЙСКОМ ЯЗЫКЕ, например, 
+% In this paper we consider the $A$-integral and its application in the theory of trigonometric series.
+% }}\hss} 
+
+% \vskip0.2truecm
+% \hbox to \hsize{\hss {\vbox{\hsize=150truemm
+% \noindent \small {\sl \small Keywords}:
+% \selectlanguage{english} 
+% % КЛЮЧЕВЫЕ СЛОВА НА АНГЛИЙСКОМ ЯЗЫКЕ в единственном числе, например,
+% $A$-integral, conjugate trigonometric series,
+% conjugate function, Cauchy integral, Cauchy type integral.}}\hss}
+
+
+% %%%% Информация об авторе(ах) на английском языке
+
+% % имя, отчество, фамилия 
+% % высшее учебное заведение (Академия наук, НИИ, ВЦ и т.д.), \\ служебный адрес (дом улица, город, индекс страна),
+% % e-mail
+% % например:
+
+% \fullauthor{Ivan Ivanovich Ivanov}
+% \address{Kazan Federal University,\\
+% 18 Kremlyovskaya str., Kazan, 420008 Russia,}
+% \email{***@***.ru}
+
+
+\label{lastpage}  %% Не удалять!!!
+
+\end{document}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Примерные рекомендации по подключению графики:
+\begin{center}
+\begin{figure}\bigl[h!\bigr]
+\includegraphics{___.eps}
+% или
+% \begin{center} 
+%           \includegraphics\bigl[scale=0.75\bigr]{___.eps}
+% масштабирование 75% (если нужно) ^^^^^
+%%%%%%                vvvvvvvv
+% или \includegraphics\bigl[width=...\bigr]{___.eps}
+% детали см., например, на с.217 в книге "Издательская система LATEX2e"
+% И.Котельников, П.Чеботаев, Новосибирск, 1998
+\caption{___________}
+\label{______}
+\end{figure}
+\end{center}
+
+% Примерные рекомендации по подключению таблиц:
+\begin{center}
+\begin{table}\bigl[h!\bigr]
+\begin{tabular}{.........}
+%
+% Тело таблицы
+%
+\end{tabular}
+\caption{___________}
+\label{__________}
+\end{table}
+\end{center}
