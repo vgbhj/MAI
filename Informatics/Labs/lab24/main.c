@@ -195,6 +195,6 @@ int main(){
     StackPrint(stk);
     printf("\n");
     BuildTree(&root, &stk);
-    ConvertTree(&root);
+    // ConvertTree(&root);
     printTree(root, 0);
 }
