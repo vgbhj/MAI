@@ -166,6 +166,7 @@ config.xml
 *.zip
 jstu4-2.3.zip
 Eng/
+DM/
 History/
 RKT/venv
 

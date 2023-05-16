@@ -4,29 +4,31 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef struct Node
+typedef struct Item
 {
-    int value;
-    struct Node *next;
+    int data;
+    struct Item* prev;
+    struct Item* next;
     
-} Node;
+} Item;
 
-typedef struct udt
+typedef struct Udt
 {
-    
-    Node *head;
     size_t size;
+    Item* head;
+    Item* tail;
 
-} udt;
+} Udt;
 
-void udt_create(udt *);
-bool udt_is_empty(const udt *);
-void udt_push_front(udt *);
-void udt_push_back(udt *);
-void udt_pop_front(udt *);
-void udt_pop_back(udt *);
-void udt_print(const udt *);
-size_t udt_size(const udt *);
-void udt_insert(udt *, const Node);
+void udt_create(Udt *);
+bool udt_is_empty(const Udt *);
+void udt_push_front(Udt *, int val);
+void udt_push_back(Udt *, int val);
+void udt_pop_front(Udt *);
+void udt_pop_back(Udt *);
+void udt_print(const Udt *);
+size_t udt_size(const Udt *);
+void udt_insert(Udt *, int ind, int val);
+void udt_sort(Udt *);
 
 #endif
