@@ -56,6 +56,7 @@ void ReadToStack(Stack **stk) {
                     continue;
                 }
             }
+            else{
             if(lstNum){
                 Value v;
                 v.number = buff * sign;
@@ -79,6 +80,7 @@ void ReadToStack(Stack **stk) {
             v.symbol = c;
             StackPush(&tmp_stk, (Item){v, OPERATOR});
             isStart = true;
+            }
         }
         else if (c == '(') {
             Value v;
@@ -104,6 +106,7 @@ void ReadToStack(Stack **stk) {
                 StackPush(stk, StackTop(&tmp_stk));
                 StackPop(&tmp_stk);
             }
+            
         }
         else if(IsLetter(c)){
             Value v;
@@ -118,6 +121,7 @@ void ReadToStack(Stack **stk) {
                 buff = 0.0;
                 sign = 1;
             }
+            isStart = false;
         }
 
         if (c == '\n' || c == EOF) {
@@ -136,8 +140,10 @@ void ReadToStack(Stack **stk) {
         StackPush(stk, (Item){v, NUMBER});
     }
 
-    while (!StackIsEmpty(&tmp_stk)){    
-        StackPush(stk, StackTop(&tmp_stk));
+    while (!StackIsEmpty(&tmp_stk)){   
+        if(StackTop(&tmp_stk).value.symbol != '('){
+            StackPush(stk, StackTop(&tmp_stk));
+        } 
         StackPop(&tmp_stk);
     }
 }
@@ -186,7 +192,86 @@ int TakeSign(double value){
     return 1;
 }
 
+int RecursiveConvertTree(Node *root){
+    int buff = 1;
+    if(root->value.type == OPERATOR){
+        if(root->value.value.symbol == '*'){
+            if(root->left){
+                buff *= RecursiveConvertTree(root->left);
+            }
+            if(root->right){
+                buff *= RecursiveConvertTree(root->right);
+            }
+            return buff;
+        }
+    }
+    if(root->value.type == NUMBER){
+        int s =  TakeSign(root->value.value.number);
+        root->value.value.number = abs(root->value.value.number);
+        return s;
+    }
+    return 1;
+}
 
+void ConvertTree(Node* root){
+    if(root != NULL){
+
+    if(root->value.type == OPERATOR){
+        if(root->value.value.symbol == '*'){
+            int buff = RecursiveConvertTree(root);
+            if(buff == -1){
+                Value v;
+                v.number = buff;
+                root->left = TreeCopy(root);
+                root->right = CreateNode((Item){v, NUMBER});
+            }
+        }
+        ConvertTree(root->left);
+        ConvertTree(root->right);
+    }
+    }
+}
+
+void PrintTree(Node *root) {
+    if (root != NULL) {
+        if (root->value.type == OPERATOR) {
+            if (root->left->value.type == OPERATOR) {
+                if (CheckPriorety(root->value.value.symbol) > CheckPriorety(root->left->value.value.symbol)) {
+                    printf("(");
+                }
+            }
+
+            PrintTree(root->left);
+
+            if (root->left->value.type == OPERATOR) {
+                if (CheckPriorety(root->value.value.symbol) > CheckPriorety(root->left->value.value.symbol)) {
+                    printf(")");
+                }
+            }
+            printf(" %c ", root->value.value.symbol);
+
+            if (root->right->value.type == OPERATOR) {
+                if (CheckPriorety(root->value.value.symbol) > CheckPriorety(root->right->value.value.symbol)) {
+                    printf("(");
+                }
+            }
+
+            PrintTree(root->right);
+
+            if (root->right->value.type == OPERATOR) {
+                if (CheckPriorety(root->value.value.symbol) > CheckPriorety(root->right->value.value.symbol)) {
+                    printf(")");
+                }
+            }
+        } else if (root->value.type == VARIABLE) {
+            printf("%c", root->value.value.symbol);
+        } else {
+            printf("%.1f", root->value.value.number);
+        }
+    } else {
+        printf("\n");
+    } 
+}
 
 int main(){
     Stack *stk = NULL;
@@ -195,6 +280,8 @@ int main(){
     StackPrint(stk);
     printf("\n");
     BuildTree(&root, &stk);
-    // ConvertTree(&root);
+    ConvertTree(root);
+    PrintTree(root);
+    printf("\n"); 
     printTree(root, 0);
-}
+}  

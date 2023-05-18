@@ -9,7 +9,7 @@ Node *CreateNode(Item value) {
 }
 
 void printTree(Node *root, int h) {
-    if (root) {
+    if (root != NULL) {
         printTree(root->right, h+1);
         for(int i = 0; i < 4 * h; ++i){
             printf(" ");
