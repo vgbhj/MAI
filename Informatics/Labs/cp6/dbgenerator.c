@@ -17,12 +17,14 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < num; i++) {
         char record[num / 2];
 
-        char* surname;
-        if (rand() % 2 == 0) {
-            surname = allowedSurnamesMale[rand() % 10];
-        } else {
-            surname = allowedSurnamesFemale[rand() % 10];
-        }
+        char* surname = *((rand() % 2 == 0)
+            ? (allowedSurnamesMale + rand() % 10)
+            : (allowedSurnamesFemale + rand() % 10));  
+        // if (rand() % 2 == 0) {
+        //     surname = allowedSurnamesMale[rand() % 10];
+        // } else {
+        //     surname = allowedSurnamesFemale[rand() % 10];
+        // }
         char* initials = allowedInitials[rand() % 20];
         char* sex = allowedSex[rand() % 2];
         int group = allowedGroups[rand()%4];

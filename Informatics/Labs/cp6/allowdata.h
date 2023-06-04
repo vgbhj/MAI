@@ -1,7 +1,9 @@
 #ifndef allowdata_h
 #define allowdata_h
 
-char* allowedSurnamesMale[] = {
+#define ALLOWED_SURNAME_COUT 10
+
+char* allowedSurnamesMale[ALLOWED_SURNAME_COUT] = {
     "Zaitsev",
     "Alekseev",
     "Nikitin",
@@ -14,7 +16,7 @@ char* allowedSurnamesMale[] = {
     "Nadtochiy",
 };
 
-char* allowedSurnamesFemale[] = {
+char* allowedSurnamesFemale[ALLOWED_SURNAME_COUT] = {
     "Zaitseva",
     "Alekseeva",
     "Nikitina",

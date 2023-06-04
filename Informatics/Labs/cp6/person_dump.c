@@ -31,7 +31,8 @@ int main(int argc, char* argv[]){
         fwrite(&s, sizeof (s), 1, out);
     }
     // Debug
-    // fclose(out);
+    fclose(in);
+    fclose(out);
     // out = fopen(argv[2], "r");
     // while (fread(&s, sizeof(s), 1, out) == 1) {
     //         printf("|%-25s|%-3s|%-3c|%-7d|%-6d|%-6d|%-6d|%-6d|\n", s.surname, s.initials, s.sx, s.gr, s.mathematics, s.physics, s.informatics, s.history);

@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <malloc.h>
 
 struct complex {
     double re;
@@ -44,19 +45,19 @@ struct matrix Read(FILE *in) {
     return ans;
 }
 
-void print_matrix(struct matrix a) {
-    if (!(a.M && a.N)){
+void print_matrix(struct matrix *a) {
+    if (!(a->M && a->N)){
         printf("Matrix doesn't exist\n");
         return;
     }
-    printf("Matrix size: %dx%d\n", a.M, a.N);
+    printf("Matrix size: %dx%d\n", a->M, a->N);
     printf("Internal representation:\n");
-    for (int i = 0; i < a.size; i++) {
-        if(a.v[i].int_num){
-            printf("%d\t", a.v[i].int_num);
+    for (int i = 0; i < a->size; i++) {
+        if(a->v[i].int_num){
+            printf("%d\t", a->v[i].int_num);
         }
-        else if(a.v[i].complex_num.im || a.v[i].complex_num.re){
-            printf("%.2f+%.2fi\t", a.v[i].complex_num.re, a.v[i].complex_num.im);
+        else if(a->v[i].complex_num.im || a->v[i].complex_num.re){
+            printf("%.2f+%.2fi\t", a->v[i].complex_num.re, a->v[i].complex_num.im);
         }
         else{
             printf("%d\t", 0);
@@ -65,12 +66,12 @@ void print_matrix(struct matrix a) {
     printf("\nHuman readable:\n");
     int count = 0;
     struct complex c;
-    for (int i = 0; i < a.M; i++) {
+    for (int i = 0; i < a->M; i++) {
         count++;
-        for (int j = 0; j < a.N; j++) {
-            if(j+1 == a.v[count].int_num){
+        for (int j = 0; j < a->N; j++) {
+            if(j+1 == a->v[count].int_num){
                 count++;
-                printf("%.2f+%.2fi\t", a.v[count].complex_num.re, a.v[count].complex_num.im);
+                printf("%.2f+%.2fi\t", a->v[count].complex_num.re, a->v[count].complex_num.im);
                 count++;
             }
             else{
@@ -82,20 +83,20 @@ void print_matrix(struct matrix a) {
     }
 }
 
-void task(struct matrix a) {
+void task(struct matrix *a) {
     Item ans;
     int mx_count;
     int count = 0;
-    for (int i = 0; i < a.M; i++) {
+    for (int i = 0; i < a->M; i++) {
         int non_null_count = 0;
         Item tmp;
         count++;
-        for (int j = 0; j < a.N; j++) {
-            if(j+1 == a.v[count].int_num){
+        for (int j = 0; j < a->N; j++) {
+            if(j+1 == a->v[count].int_num){
                 count++;
                 non_null_count++;
-                tmp.complex_num.re += a.v[count].complex_num.re;
-                tmp.complex_num.im += a.v[count].complex_num.im;
+                tmp.complex_num.re += a->v[count].complex_num.re;
+                tmp.complex_num.im += a->v[count].complex_num.im;
                 count++;
             }
         }
@@ -137,11 +138,11 @@ int main(int argc, char *argv[]) {
                 scanf("%d", &choose);
                 switch (choose) {
                     case 1: {
-                        print_matrix(A);
+                        print_matrix(&A);
                         break;
                     }
                     case 2: {
-                        print_matrix(B);
+                        print_matrix(&B);
                         break;
                     }
                     default: {
@@ -156,11 +157,11 @@ int main(int argc, char *argv[]) {
                 scanf("%d", &choose);
                 switch (choose) {
                     case 1: {
-                        task(A);
+                        task(&A);
                         break;
                     }
                     case 2: {
-                        task(B);
+                        task(&B);
                         break;
                     }
                     default: {
