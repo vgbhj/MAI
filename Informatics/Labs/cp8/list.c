@@ -46,7 +46,7 @@ Node* prev(Ring *ring) {
 }
 
 
-void circle(Node *node, void (*f)(Node* node)) {
+void circleNode(Node *node, void (*f)(Node* node)) {
     Node *anchor = node;
     if (anchor) {       
         do {
@@ -54,6 +54,18 @@ void circle(Node *node, void (*f)(Node* node)) {
             anchor = anchor->next;
         } while (anchor != node);
     }
+}
+
+void findInd(Ring* ring, int ind) {
+    Node *anchor = ring->current;
+        if (anchor) {
+            do {
+                if(ring->current->ind == ind){
+                    break;
+                }
+                ring->current = ring->current->next;
+            } while (anchor != ring->current);
+        }
 }
  
 void printNode(Node *node) {
@@ -99,22 +111,9 @@ void addElement(Ring *ring, T value) {
         ring->current->prev->next = tmp;
         ring->current->prev = tmp;
         ring->current = tmp;
-        circle(ring->current->next, updateIndAfterAdd);
+        circleNode(ring->current->next, updateIndAfterAdd);
     }
     ring->size++;
-}
-
-void InsertElement(Ring *ring, T value, int ind){
-        Node *anchor = ring->current;
-        if (anchor) {       
-            do {
-                if(ring->current->ind == ind){
-                    addElement(ring, value);
-                    break;
-                }
-                ring->current = ring->current->next;
-            } while (anchor != ring->current);
-        }
 }
 
 T removeElement(Ring *ring) {
@@ -137,51 +136,16 @@ T removeElement(Ring *ring) {
         retVal = ring->current->data;
         free(ring->current);
         ring->current = afterTarget;
-        circle(ring->current, updateIndAfterDel);
+        circleNode(ring->current, updateIndAfterDel);
     }
     ring->size--;
     return retVal;
 }
 
-void removeElementByIndex(Ring *ring, int ind){
-        Node *anchor = ring->current;
-        if (anchor) {
-            do {
-                if(ring->current->ind == ind){
-                    removeElement(ring);
-                    break;
-                }
-                ring->current = ring->current->next;
-            } while (anchor != ring->current);
-        }
-}
-
-
-void findFirst(Ring *ring){
-        Node *anchor = ring->current;
-        if (anchor) {       
-            do {
-                if(ring->current->ind == 0){
-                    break;
-                }
-                ring->current = ring->current->next;
-            } while (anchor != ring->current);
-        }
-}
-
-void swapPrevNext(Ring *ring, int ind){
-        Node *anchor = ring->current;
-        if (anchor) {
-            do {
-                if(ring->current->ind == ind){
-                    T tmp_data = ring->current->next->data;
-                    ring->current->next->data = ring->current->prev->data; 
-                    ring->current->prev->data = tmp_data; 
-                    break;
-                }
-                ring->current = ring->current->next;
-            } while (anchor != ring->current);
-        }
+void swapPrevNext(Ring *ring){
+        T tmp_data = ring->current->next->data;
+        ring->current->next->data = ring->current->prev->data; 
+        ring->current->prev->data = tmp_data;
 }
 
 
@@ -200,8 +164,8 @@ int main(){
                 if (r->size == 0) {
                     break;
                 }
-                findFirst(r);
-                circle(r->current, printNode);
+                findInd(r, 0);
+                circleNode(r->current, printNode);
                 printf("\n");
                 break;
             }
@@ -213,7 +177,8 @@ int main(){
                     printf("Write the index where you want insert element\n");
                     scanf("%d", &ind);
                     if (0 <= ind && ind < r->size) {
-                        InsertElement(r, val, ind);
+                        findInd(r, ind);
+                        addElement(r, val);
                     } 
                     else {
                         printf("Element with %d index doesn't exists\n", ind);
@@ -233,7 +198,9 @@ int main(){
                 printf("Write index of deleted element\n");
                 scanf("%d", &ind);
                 if (0 <= ind && ind < r->size) {
-                    removeElementByIndex(r, ind);
+                    findInd(r, ind);
+                    removeElement(r);
+
                 } else {
                     printf("Element with %d index doesn't exists\n", ind);
                 }
@@ -259,7 +226,8 @@ int main(){
                 int ind;
                 printf("Write k value\n");
                 scanf("%d", &ind);
-                swapPrevNext(r, ind);
+                findInd(r, ind);
+                swapPrevNext(r);
                 break;
             }
             case 6: {
