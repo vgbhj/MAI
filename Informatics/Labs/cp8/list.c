@@ -20,7 +20,7 @@ Ring* createRing() {
     Ring *tmp = (Ring*)malloc(sizeof(Ring));
     if(tmp == NULL){
         return NULL;
-    } 
+    }
     tmp->size = 0;
     tmp->current = NULL;
  
@@ -63,32 +63,22 @@ void findInd(Ring* ring, int ind) {
                 if(ring->current->ind == ind){
                     break;
                 }
-                ring->current = ring->current->next;
+                next;
             } while (anchor != ring->current);
         }
 }
  
 void printNode(Node *node) {
     printf("%d ", node->data);
-
-
-    // Debug
-    // printf("%d %d \n", node->data, node->ind);
 }
 
 void updateIndAfterAdd(Node *node){
-
-    // Debug
-    // printf("id1: %d %d \n", node->data, node->ind);
-    // printf("id2: %d %d \n", node->prev->data, node->ind);
     if(node->ind == node->prev->ind){
         node->ind++;
     }
 }
 
 void updateIndAfterDel(Node *node){
-    // Debug
-    // printf("id: %d %d \n", node->data, node->ind);
     if( abs(node->ind - node->prev->ind) != 1 && node->ind != 0){
         node->ind--;
     }
@@ -97,8 +87,11 @@ void updateIndAfterDel(Node *node){
 void addElement(Ring *ring, T value) {
     Node *prev = NULL;
     Node *tmp = (Node*)malloc(sizeof(Node));
+    if(tmp == NULL){
+        
+    }
     tmp->ind = 0;
- 
+    
     tmp->data = value;
     //Если в кольце нет элементов
     if (ring->current == NULL) {

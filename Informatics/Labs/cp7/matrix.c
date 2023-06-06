@@ -85,7 +85,7 @@ void print_matrix(struct matrix *a) {
 
 void task(struct matrix *a) {
     Item ans;
-    int mx_count;
+    int mx_count = 0;
     int count = 0;
     for (int i = 0; i < a->M; i++) {
         int non_null_count = 0;
@@ -93,6 +93,7 @@ void task(struct matrix *a) {
         count++;
         for (int j = 0; j < a->N; j++) {
             if(j+1 == a->v[count].int_num){
+                // printf("%d %d THERE!\n", non_null_count, mx_count);
                 count++;
                 non_null_count++;
                 tmp.complex_num.re += a->v[count].complex_num.re;
@@ -100,9 +101,9 @@ void task(struct matrix *a) {
                 count++;
             }
         }
-        tmp.int_num = i+1;
         count++;
         if(non_null_count > mx_count){
+            tmp.int_num = i+1;
             ans = tmp;
             mx_count = non_null_count;
         }
