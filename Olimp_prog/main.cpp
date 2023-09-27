@@ -2,46 +2,31 @@
 
 using namespace std;
 
-vector<int> z_func(const string& s){
-    int n = s.size();
-    vector<int> z(n);
-    z[0] = n;
-    int l = 0, r = 0;
-    for(int i = 1; i < n; ++i){
-        if(i < r){
-            z[i] = min(z[i - l], r - i);
-        }
-        while (i + z[i] < n and s[z[i]] == s[i+z[i]])
-        {
-            ++z[i];
-        }
-        if(i + z[i] > r){
-            l = i;
-            r = l + z[i];
-        }
-    }
-    return z;
-}
-
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(0);
 
-    int q, t;
-    cin >> q;
-    map<int, int> mp;
-    while (q--)
-    {
-        cin >> t;
-        if(t == 1){
-            
+    int t;
+    cin >> t;
+    for(int i = 0; i < t; ++i){
+        int n;
+        cin >> n;
+        vector<int> tmp(n);
+        set<int> st;
+        for(int j = 0; j < n; ++j){
+            cin >> tmp[j];
         }
-        if(t == 2){
-            
+
+        for(int j = 0; j < n; ++j){
+            int sm = tmp[j];
+            cout << sm << ' ' << j << ' ' << j << ' ' << '\n';
+            st.insert(sm);
+            for(int k = j+1; k < n; ++k){
+                sm = sm ^ tmp[k];
+                cout << sm << ' ' << j << ' ' << k << ' ' << '\n';
+                st.insert(sm);
+            }
         }
-        if(t == 3){
-            
-        }
+        cout << st.size() << '\n';
     }
-    
 }
