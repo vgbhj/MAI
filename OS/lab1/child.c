@@ -44,12 +44,22 @@ int main(){
                 else{
                     res /= tmp;
                     tmp = 0;
+                    is_first_digit = 0;
                 }
                 
             }
             else if(p[i] == EOF || p[i] == '\n'){
                 if(tmp != 0){
                     res /= tmp;
+                }
+                else{
+                    if(is_first_digit == 1){
+                        is_first_digit = 0;
+                    }
+                    else{
+                        perror("Division by zero!\n");
+                        return -1;
+                    }
                 }
                 printf("%d\n", res);
                 res = 0;
@@ -63,6 +73,15 @@ int main(){
     }
     if(tmp != 0){
         res /= tmp;
+    }
+    else{
+        if(is_first_digit == 1){
+            is_first_digit = 0;
+        }
+        else{
+            perror("Division by zero!\n");
+            return -1;
+        }
     }
     printf("%d\n", res);
     return 0;
