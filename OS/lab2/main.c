@@ -91,6 +91,10 @@ int main(int argc, char *argv[]){
     
     printf("\n");
 
+
+    // Record start time
+    clock_t start_time = clock();
+
     // Create N threads
     int numThreads = atoi(argv[2]);
     if(!isPowerOfTwo(numThreads)){
@@ -130,6 +134,12 @@ int main(int argc, char *argv[]){
     }
     
 
+    // Record end time
+    clock_t end_time = clock();
+
+    double execution_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
+    printf("Execution Time: %f seconds\n", execution_time);
+    
     printf("\nPreSorted Array:\n");
     for (int i = 0; i < size; ++i) {
         printf("%d ", arr[i]);
