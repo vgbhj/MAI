@@ -12,7 +12,7 @@ int main(int argc, char *argv[]){
     
     char fname[FILENAME_MAX];
     printf("Enter file name: ");
-    if(scanf("%4095s",fname) != 1){
+    if(scanf("%255s",fname) != 1){
         perror("Error read filename\n");
         return -1;
     }
