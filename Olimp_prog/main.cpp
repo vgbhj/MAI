@@ -1,52 +1,34 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 
 using ll = long long;
-using pii = pair<ll, ll>;
-
-bool isPrime(int n) {
-    if (n <= 1) {
-        return false;
-    }
-    for (int i = 2; i <= sqrt(n); ++i) {
-        if (n % i == 0) {
-            return false;
-        }
-    }
-    return true;
-}
- 
-bool isPerfectSquare(int n) {
-    int root = sqrt(n);
-    return root * root == n;
-}
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(0);
+    // Чтение входных данных
+    ll n, X;
+    cin >> n >> X;
 
-    int n;
-    cin >> n;
-    int tmp_n = 0;
-    int ans = 0;
-    for(int i = 0; i < n; ++i){
-        char k;
-        cin >> k;
-        if(isPrime(k - '0')) {
-            ans++; tmp_n = 0;
-            }
-        else{
-            tmp_n *= 10;
-            tmp_n += (k - '0');            
-        }
-        // cout << tmp_n << ;
-        if(tmp_n){
-            if(isPerfectSquare(tmp_n) || isPrime(tmp_n)) {
-            ans++; tmp_n = 0;
-            }
-        }
+    vector<pair<ll, ll>> trees; // Вектор для хранения координат деревьев
+
+    for (ll i = 0; i < n; ++i) {
+        ll x, y;
+        cin >> x >> y;
+        trees.push_back({x, y});
     }
 
-    cout << ans;
+    // Сортировка деревьев по координатам x
+    sort(trees.begin(), trees.end());
+
+    long long totalDistance = 0; // Сумма расстояний от точки до всех деревьев
+    for (ll i = 0; i < n; ++i) {
+        totalDistance += abs(trees[i].first - (i + 1) * 1LL * X);
+    }
+
+    // Вывод результатов
+    cout << totalDistance << " " << (n + 1) / 2 * X << endl;
+
+    return 0;
 }
