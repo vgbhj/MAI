@@ -30,7 +30,7 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
-    
+    printf("AAAAAAAAAAAA\n");
     void* shm_ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
 
 

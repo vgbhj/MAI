@@ -83,13 +83,13 @@ int main(int argc, char *argv[]){
     }
     int* arr = (int*)malloc(size * sizeof(int));
 
-    printf("Original Array:\n");
-    for (int i = 0; i < size; ++i) {
-        arr[i] = rand() % 100;
-        printf("%d ", arr[i]);
-    }
+    // printf("Original Array:\n");
+    // for (int i = 0; i < size; ++i) {
+    //     arr[i] = rand() % 100;
+    //     printf("%d ", arr[i]);
+    // }
     
-    printf("\n");
+    // printf("\n");
 
 
     // Record start time
@@ -140,11 +140,11 @@ int main(int argc, char *argv[]){
     double execution_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
     printf("Execution Time: %f seconds\n", execution_time);
     
-    printf("\nPreSorted Array:\n");
-    for (int i = 0; i < size; ++i) {
-        printf("%d ", arr[i]);
-    }
-    printf("\n");
+    // printf("\nPreSorted Array:\n");
+    // for (int i = 0; i < size; ++i) {
+    //     printf("%d ", arr[i]);
+    // }
+    // printf("\n");
 
     for(int i = 1; i <= (int)log2(size/chunkSize); ++i){
         for(int j = 0 ; j < size/chunkSize/(int)pow(2,i); ++j){
@@ -153,11 +153,11 @@ int main(int argc, char *argv[]){
     }
 
 
-    printf("\nSorted Array:\n");
-    for (int i = 0; i < size; ++i) {
-        printf("%d ", arr[i]);
-    }
-    printf("\n");
+    // printf("\nSorted Array:\n");
+    // for (int i = 0; i < size; ++i) {
+    //     printf("%d ", arr[i]);
+    // }
+    // printf("\n");
 
     // Clean up
     free(arr);
