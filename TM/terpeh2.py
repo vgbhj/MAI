@@ -56,11 +56,11 @@ def disk(x, y, r):
     return (cx, cy)
 
 
-x_disk = xA + s * 0
+x_disk = s * np.cos(phi)
 # l - s - r * np.tan(phi) - вертикальное расстояние от точки B до центра диска
 # sin(phi) - учитывает горизонтальное перемещение диска в результате поворота балки.
 # r/cos(phi) - компенсация вертикального перемещения диска вдоль наклоненной балки, что учитывает наклон балки.
-y_disk = yB
+y_disk = (l - s - r * np.tan(phi)) * np.sin(phi) + r / np.cos(phi)
 
 disk_ = ax.plot(disk(x_disk[0], y_disk[0] + yB[0], r)[0], disk(x_disk[0], y_disk[0] + yB[0], r)[1], 'green')[0]
 

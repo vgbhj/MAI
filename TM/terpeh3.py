@@ -41,7 +41,6 @@ r = 0.5 # радиус диска
 g = 9.8
 phi_ = np.pi/36
 
-
 s0 = 0
 phi0 = np.pi/18
 ds = 0
@@ -128,8 +127,6 @@ def disk(x, y, r):
     cx = [x + r * np.sin(i / 100) for i in range(0, 628)]
     cy = [y + r * np.cos(i / 100) for i in range(0, 628)]
     return (cx, cy)
-
-
 
 x_disk = s * np.cos(phi)
 # l - s - r * np.tan(phi) - вертикальное расстояние от точки B до центра диска

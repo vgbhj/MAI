@@ -155,5 +155,5 @@ def anima(i):
 
 
 #вывести график
-anim = FuncAnimation(fig, anima, frames=1000, interval=35, blit=True)
+anim = FuncAnimation(fig, anima, frames=1000, interval=100, blit=True)
 plt.show()
