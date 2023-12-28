@@ -1,0 +1,23 @@
+1:
+  isStart: true
+  isEnd: false
+  dependencies: [2, 3, 4]
+  command: 'g++ -o b.out b.o c.o d.o'
+
+2:
+  isStart: false
+  isEnd: true
+  dependencies: []
+  command: 'g++ -c test/b.cpp'
+
+3:
+  isStart: false
+  isEnd: true
+  dependencies: []
+  command: 'g++ -c test/c.cpp'
+
+4:
+  isStart: false
+  isEnd: true
+  dependencies: []
+  command: 'g++ -c test/d.cpp'

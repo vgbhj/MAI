@@ -1,0 +1,34 @@
+1:
+  isStart: true
+  isEnd: false
+  dependencies: [2, 3]
+
+2:
+  isStart: false
+  isEnd: false
+  dependencies: [4]
+
+3:
+  isStart: false
+  isEnd: false
+  dependencies: [4]
+
+4:
+  isStart: false
+  isEnd: true
+  dependencies: []
+
+5:
+  isStart: true
+  isEnd: false
+  dependencies: [3]
+
+6:
+  isStart: true
+  isEnd: false
+  dependencies: [7]
+
+7:
+  isStart: false
+  isEnd: false
+  dependencies: [2]
