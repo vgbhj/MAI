@@ -1,8 +1,0 @@
-{
-  "files.associations": {
-    "\"editor.fontFamily\"": "\"JetBrains Mono NL\"",
-    "chrono": "cpp",
-    "span": "cpp",
-    "iostream": "cpp"
-  }
-}
