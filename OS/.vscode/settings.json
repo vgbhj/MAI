@@ -1,0 +1,9 @@
+{
+  "files.associations": {
+    "\"editor.fontFamily\"": "\"JetBrains Mono NL\"",
+    "cstdlib": "c",
+    "string": "cpp",
+    "format": "cpp",
+    "string.h": "c"
+  }
+}
