@@ -57,6 +57,7 @@ class RBTree
         void saveToFile(const std::string& filename);
         void loadFromFile(const std::string& filename);
         void clear();
+        void getRoot();
 };
 
 

@@ -35,7 +35,6 @@ Node* RBTree::insertBST(Node *&root, Node *&ptr) {
 }
 
 void RBTree::insertValue(string k, unsigned long long v) {
-    k = toLower(k);
     Node *node = new Node(k, v);
     root = insertBST(root, node);
     fixInsertRBTree(node);
@@ -274,6 +273,12 @@ void RBTree::preorderBST(Node *&ptr) {
 void RBTree::preorder() {
     preorderBST(root);
     cout << "-------" << endl;
+}
+
+void RBTree::getRoot(){
+    if(root){
+        cout << root->key << '\n';
+    }
 }
 
 Node *RBTree::minValueNode(Node *&node) {
