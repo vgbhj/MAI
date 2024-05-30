@@ -332,6 +332,20 @@ bool RBTree::searchBool(string key){
     return true;
 }
 
+void RBTree::saveHelper(std::ofstream &outFile, Node* node) {
+    if (node == nullptr) {
+        outFile.put(0);
+        return;
+    }
+    outFile.put(1);
+    size_t keySize = node->key.size();
+    outFile.write(reinterpret_cast<char*>(&keySize), sizeof(keySize));
+    outFile.write(node->key.data(), keySize);
+    outFile.write(reinterpret_cast<char*>(&node->value), sizeof(node->value));
+    saveHelper(outFile, node->left);
+    saveHelper(outFile, node->right);
+}
+
 void RBTree::saveToFile(const std::string& filename) {
     std::ofstream outFile(filename, std::ios::binary);
     if (!outFile) {
@@ -342,18 +356,41 @@ void RBTree::saveToFile(const std::string& filename) {
     outFile.close();
 }
 
-// void RBTree::loadFromFile(const std::string& filename) {
-//     std::ifstream inFile(filename, std::ios::binary);
-//     if (!inFile) {
-//         std::cerr << "ERROR: Could not open file for reading" << std::endl;
-//         return;
-//     }
-//     clear();
-//     loadHelper(inFile);
-//     inFile.close();
-// }
+void RBTree::loadHelper(std::ifstream &inFile) {
+    char flag;
+    inFile.get(flag);
+    if (!inFile || flag == 0) return;
+    size_t keySize;
+    inFile.read(reinterpret_cast<char*>(&keySize), sizeof(keySize));
+    std::string key(keySize, '\0');
+    inFile.read(&key[0], keySize);
+    unsigned long long value;
+    inFile.read(reinterpret_cast<char*>(&value), sizeof(value));
+    insertValue(key, value);
+    loadHelper(inFile);
+    loadHelper(inFile);
+}
 
-// void RBTree::clear() {
-//     clearHelper(root);
-//     root = nullptr;
-// }
+void RBTree::loadFromFile(const std::string& filename) {
+    std::ifstream inFile(filename, std::ios::binary);
+    if (!inFile) {
+        std::cerr << "ERROR: Could not open file for reading" << std::endl;
+        return;
+    }
+    clear();
+    loadHelper(inFile);
+    inFile.close();
+}
+
+void RBTree::clearHelper(Node* &node) {
+    if (node == nullptr) return;
+    clearHelper(node->left);
+    clearHelper(node->right);
+    delete node;
+    node = nullptr;
+}
+
+void RBTree::clear() {
+    clearHelper(root);
+    root = nullptr;
+}

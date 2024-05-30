@@ -45,6 +45,7 @@ class RBTree
         static std::string toLower(std::string str);
         void saveHelper(std::ofstream &outFile, Node* node);
         void loadHelper(std::ifstream &inFile);
+        void clearHelper(Node* &node);
     public:
         RBTree();
         void insertValue(string, unsigned long long);
