@@ -441,8 +441,12 @@ int RBTree::compareString(const string &x, const string &y){
 }
 
 int main() {
-    // ios::sync_with_stdio(false);
-    // cin.tie(0);
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    // std::ofstream out("out.txt"); //откроем файл для вывод
+    // std::streambuf *coutbuf = std::cout.rdbuf(); //запомним старый буфер
+    // std::cout.rdbuf(out.rdbuf()); //и теперь все будет в файл out.txt!
     RBTree tree;
     string command, key, path, answer;
     ull value;
