@@ -1,17 +1,15 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ull = unsigned long long;
 enum Color {RED, BLACK, DOUBLE_BLACK};
 
 struct Node
 {
-    string key;
-    ull value;
+    int data;
     int color;
     Node *left, *right, *parent;
 
-    explicit Node(const string&, ull);
+    explicit Node(int);
 };
 
 class RBTree
@@ -30,24 +28,20 @@ class RBTree
         Node *minValueNode(Node *&);
         Node *maxValueNode(Node *&);
         Node* insertBST(Node *&, Node *&);
-        Node* deleteBST(Node *&, const string &);
-        Node* searchHelper(Node*, const string&);
+        Node* deleteBST(Node *&, int);
         int getBlackHeight(Node *);
-        void transplant(Node *u, Node *v);
-        int compareString(const string &str1, const string &str2);
     public:
         RBTree();
-        void insertValue(const string &, ull);
-        void deleteValue(const string &);
+        void insertValue(int);
+        void deleteValue(int);
+        void merge(RBTree);
         void inorder();
         void preorder();
-        int search (const string &key);
-        Node* get (const string &key);
-        static std::string toLower(std::string str);
 };
-Node::Node(const string& key, ull value) {
-    this->key = key;
-    this->value = value;
+
+
+Node::Node(int data) {
+    this->data = data;
     color = RED;
     left = right = parent = nullptr;
 }
@@ -74,10 +68,10 @@ Node* RBTree::insertBST(Node *&root, Node *&ptr) {
     if (root == nullptr)
         return ptr;
 
-    if (ptr->key < root->key) {
+    if (ptr->data < root->data) {
         root->left = insertBST(root->left, ptr);
         root->left->parent = root;
-    } else if (ptr->key > root->key) {
+    } else if (ptr->data > root->data) {
         root->right = insertBST(root->right, ptr);
         root->right->parent = root;
     }
@@ -85,39 +79,8 @@ Node* RBTree::insertBST(Node *&root, Node *&ptr) {
     return root;
 }
 
-Node* RBTree::searchHelper(Node* node, const string& key)
-    {
-        if (node == nullptr || key == node->key) {
-            return node;
-        }
-        if (key < node->key) {
-            return searchHelper(node->left, key);
-        }
-        return searchHelper(node->right, key);
-}
-
-
-int RBTree::search(const string& key){
-    Node * s = searchHelper(root, key);
-    if(s == nullptr){
-        return -1;
-    }
-    else{
-        return 1;
-    }
-}
-Node* RBTree::get(const string& key){
-    Node * s = searchHelper(root, key);
-    if(s == nullptr){
-        return nullptr;
-    }
-    else{
-        return s;
-    }
-}
-
-void RBTree::insertValue(const string& key, ull value) {
-    Node *node = new Node(key, value);
+void RBTree::insertValue(int n) {
+    Node *node = new Node(n);
     root = insertBST(root, node);
     fixInsertRBTree(node);
 }
@@ -306,104 +269,27 @@ void RBTree::fixDeleteRBTree(Node *&node) {
     }
 }
 
-int RBTree::compareString(const string &str1, const string &str2) {
-    if (str1 > str2) {
-        return 1;
-    } else if (str1 < str2) {
-        return -1;
-    } else {
-        return 0;
-    }
-}
-
-
-Node* RBTree::deleteBST(Node *&root, const string& key) {
+Node* RBTree::deleteBST(Node *&root, int data) {
     if (root == nullptr)
         return root;
 
-    if (compareString(key, root->key) < 0)
-        return deleteBST(root->left, key);
+    if (data < root->data)
+        return deleteBST(root->left, data);
 
-    if (compareString(key, root->key) > 0)
-        return deleteBST(root->right, key);
+    if (data > root->data)
+        return deleteBST(root->right, data);
 
     if (root->left == nullptr || root->right == nullptr)
         return root;
 
     Node *temp = minValueNode(root->right);
-    root->key = temp->key;
-    return deleteBST(root->right, temp->key);
+    root->data = temp->data;
+    return deleteBST(root->right, temp->data);
 }
 
-void RBTree::transplant(Node *u, Node *v) {
-    if (u->parent == nullptr) {
-        root = v;
-    } else if (u == u->parent->left) {
-        u->parent->left = v;
-    } else {
-        u->parent->right = v;
-    }
-    if (v != nullptr) {
-        v->parent = u->parent;
-    }
-}
-
-void RBTree::deleteValue(const string &key) {
-    Node *node = deleteBST(root, key);
-    if (node == nullptr) {
-        std::cout << "NoSuchWord\n";
-        return;
-    }
-
-    Node *fix;
-    int originalColor = node->color;
-    Node *child;
-
-    if (node->left == nullptr) {
-        child = node->right;
-        transplant(node, node->right);
-    } else if (node->right == nullptr) {
-        child = node->left;
-        transplant(node, node->left);
-    } else {
-        Node *minRight = minValueNode(node->right);
-        originalColor = minRight->color;
-        child = minRight->right;
-
-        if (minRight->parent == node) {
-            if (child != nullptr) {
-                child->parent = minRight;
-            }
-        } else {
-            transplant(minRight, minRight->right);
-            minRight->right = node->right;
-            minRight->right->parent = minRight;
-        }
-
-        transplant(node, minRight);
-        minRight->left = node->left;
-        minRight->left->parent = minRight;
-        minRight->color = node->color;
-    }
-
-    if (node == root) {
-        if (child != nullptr) {
-            root = child;
-        } else if (node->left != nullptr) {
-            root = node->left;
-        } else if (node->right != nullptr) {
-            root = node->right;
-        } else {
-            root = nullptr;
-        }
-    }
-
-    delete node;
-
-    if (originalColor == BLACK) {
-        fixDeleteRBTree(child);
-    }
-
+void RBTree::deleteValue(int data) {
+    Node *node = deleteBST(root, data);
+    fixDeleteRBTree(node);
 }
 
 void RBTree::inorderBST(Node *&ptr) {
@@ -411,7 +297,7 @@ void RBTree::inorderBST(Node *&ptr) {
         return;
 
     inorderBST(ptr->left);
-    cout << ptr->key << " " << ptr->color << endl;
+    cout << ptr->data << " " << ptr->color << endl;
     inorderBST(ptr->right);
 }
 
@@ -423,7 +309,7 @@ void RBTree::preorderBST(Node *&ptr) {
     if (ptr == nullptr)
         return;
 
-    cout << ptr->key << " " << ptr->color << endl;
+    cout << ptr->data << " " << ptr->color << endl;
     preorderBST(ptr->left);
     preorderBST(ptr->right);
 }
@@ -462,90 +348,114 @@ int RBTree::getBlackHeight(Node *node) {
     return blackheight;
 }
 
-string RBTree::toLower(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-    return str;
-}
+// Test case 1 : 5 2 9 1 6 8 0 20 30 35 40 50 0
+// Test case 2 : 3 0 5 0
+// Test case 3 : 2 1 3 0 8 9 4 5 0
 
-int main() {
-    // ios::sync_with_stdio(false);
-    // cin.tie(0);
-    RBTree tree;
-    string command, key, path;
-    ull value;
-    while (cin >> command) {
-        try {
-            if (command == "+") {
-                cin >> key >> value;
-                key = tree.toLower(key);
-                if(tree.search(key) == -1){
-                    tree.insertValue(key, value);
-                    cout << "OK\n";
-                }
-                else{
-                    cout << "Exist\n";
-                }
-            } else if (command == "-") {
-                cin >> key;
-                key = tree.toLower(key);
-                if(tree.search(key) == 1){
-                    tree.deleteValue(key);
-                    cout << "OK\n";
-                }
-                else{
-                    cout << "NoSuchWord\n";
-                }
-            } else if (command == "!") {
-                // cin >> command;
-                // if (command == "Save") {
-                //     cin >> path;
-                //     ofstream file;
-                //     file.open(path, ios_base::binary);
-                //     if (!file) throw runtime_error("Unable to open file for writing");
-                //     tree.saveFile(file, tree.root);
-                //     cout << "OK\n";
-                //     size_t i = -1;
-                //     file.write((char *)&i, sizeof(size_t));
-                //     file.close();
-                // } else if (command == "Load") {
-                //     cin >> path;
-                //     ifstream file;
-                //     file.open(path, ios_base::binary);
-                //     if (!file) throw runtime_error("Unable to open file for reading");
-                //     tree.loadFile(file);
-                //     file.close();
-                // }
-            } else {
-                key = tree.toLower(command);
-                if(tree.search(key) == 1){
-                    Node* s = tree.get(key);
-                    cout << "OK: " << s->value << '\n';
-                }
-                else{
-                    cout << "NoSuchWord\n";
-                }
-            }
-        } catch (const bad_alloc &) {
-            cout << "ERROR: Not enough memory\n";
-        } catch (const runtime_error &e) {
-            cout << "ERROR: " << e.what() << '\n';
-        } catch (...) {
-            cout << "ERROR: n";
+void RBTree::merge(RBTree rbTree2) {
+    int temp;
+    Node *c, *temp_ptr;
+    Node *root1 = root;
+    Node *root2 = rbTree2.root;
+    int initialblackheight1 = getBlackHeight(root1);
+    int initialblackheight2 = getBlackHeight(root2);
+    if (initialblackheight1 > initialblackheight2) {
+        c = maxValueNode(root1);
+        temp = c->data;
+        deleteValue(c->data);
+        root1 = root;
+    }
+    else if (initialblackheight2 > initialblackheight1) {
+        c = minValueNode(root2);
+        temp = c->data;
+        rbTree2.deleteValue(c->data);
+        root2 = rbTree2.root;
+    }
+    else {
+        c = minValueNode(root2);
+        temp = c->data;
+        rbTree2.deleteValue(c->data);
+        root2 = rbTree2.root;
+        if (initialblackheight1 != getBlackHeight(root2)) {
+            rbTree2.insertValue(c->data);
+            root2 = rbTree2.root;
+            c = maxValueNode(root1);
+            temp = c->data;
+            deleteValue(c->data);
+            root1 = root;
         }
     }
+    setColor(c,RED);
+    int finalblackheight1 = getBlackHeight(root1);
+    int finalblackheight2 = getBlackHeight(root2);
+    if (finalblackheight1 == finalblackheight2) {
+        c->left = root1;
+        root1->parent = c;
+        c->right = root2;
+        root2->parent = c;
+        setColor(c,BLACK);
+        c->data = temp;
+        root = c;
+    }
+    else if (finalblackheight2 > finalblackheight1) {
+        Node *ptr = root2;
+        while (finalblackheight1 != getBlackHeight(ptr)) {
+            temp_ptr = ptr;
+            ptr = ptr->left;
+        }
+        Node *ptr_parent;
+        if (ptr == nullptr)
+            ptr_parent = temp_ptr;
+        else
+            ptr_parent = ptr->parent;
+        c->left = root1;
+        if (root1 != nullptr)
+            root1->parent = c;
+        c->right = ptr;
+        if (ptr != nullptr)
+            ptr->parent = c;
+        ptr_parent->left = c;
+        c->parent = ptr_parent;
+        if (getColor(ptr_parent) == RED) {
+            fixInsertRBTree(c);
+        }
+        else if (getColor(ptr) == RED){
+            fixInsertRBTree(ptr);
+        }
+        c->data = temp;
+        root = root2;
+    }
+    else {
+        Node *ptr = root1;
+        while (finalblackheight2 != getBlackHeight(ptr)) {
+            ptr = ptr->right;
+        }
+        Node *ptr_parent = ptr->parent;
+        c->right = root2;
+        root2->parent = c;
+        c->left = ptr;
+        ptr->parent = c;
+        ptr_parent->right = c;
+        c->parent = ptr_parent;
+        if (getColor(ptr_parent) == RED) {
+            fixInsertRBTree(c);
+        }
+        else if (getColor(ptr) == RED) {
+            fixInsertRBTree(ptr);
+        }
+        c->data = temp;
+        root = root1;
+    }
+    return;
+}
+int main() {
+    int data;
+    RBTree rbTree1;
 
-    // int data;
-    // RBTree rbTree1;
-
-    
-    // rbTree1.insertValue("a", 1);
-    // rbTree1.insertValue("aa", 1);
-    // // rbTree1.insertValue("aaa", 1);
-    // rbTree1.preorder();
-    // rbTree1.deleteValue("aa");
-    
-    // rbTree1.preorder();
-
-    
+    rbTree1.insertValue(1);
+    rbTree1.insertValue(2);
+    rbTree1.inorder();
+    rbTree1.deleteValue(2);
+    rbTree1.inorder();
     return 0;
 }
