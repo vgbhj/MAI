@@ -1,494 +1,623 @@
 #include <bits/stdc++.h>
-using namespace std;
+enum Color { RED, BLACK };
 
-typedef bool Tcolor;
-const Tcolor RED = true;
-const Tcolor BLACK = false;
+class Node {
+public:
+    std::string key;
+    uint64_t value;
+    Color color;
+    Node *left, *right, *parent;
 
-typedef unsigned long long ull;
-
-struct Node{
-    Node * parent;
-    Node * left;
-    Node * right;
-    Tcolor color;
-    string key;
-    ull value;
+    Node(std::string key, uint64_t value)
+        : key(key), value(value), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
 };
 
+class RBTree {
+private:
+    Node *root;
+    Node *TNULL;
 
-class RBTree
-{
-    private:
-        Node *NullNode;
-    protected:
-        void rotateLeft(Node *);
-        void rotateRight(Node *);
-        Node *minRightNode(Node *);
-        Node *maxLeftNode(Node *);
-        void fixInsertRBTree(Node *);
-        void fixDeleteRBTree(Node *);
-        int compareString(const string &, const string &);
-    public:
-        Node *root;
-        RBTree();
-        ~RBTree();
-        string insertValue(const string&, ull);
-        string deleteValue(const string&);
-        
-        void erace(Node * x);
-        void get(const string &key);
-
-        void saveFile(ofstream &file, Node * x);
-        void loadFile(ifstream &file);
-
-        void print(Node * x, int level);
-        
-        static std::string toLower(std::string str);
-};
-
-
-RBTree::RBTree(){
-    NullNode = new Node();
-    NullNode->color = BLACK;
-    root = NullNode;
-}
-
-RBTree::~RBTree(){
-    erace(root);
-    delete NullNode;
-}
-
-void RBTree::rotateLeft(Node * x){
-    Node * xRight = x->right;
-    x->right = xRight->left;
-    if (xRight->left != NullNode) {
-        xRight->left->parent = x;
+    void initializeNULLNode(Node* node, Node* parent) {
+        node->key = "";
+        node->value = 0;
+        node->color = BLACK;
+        node->left = nullptr;
+        node->right = nullptr;
+        node->parent = parent;
     }
-    xRight->parent = x->parent;
-    if (x->parent == nullptr) {
-        root = xRight;
-    }
-    else if (x == x->parent->left) {
-        x->parent->left = xRight;
-    }
-    else {
-        x->parent->right = xRight;
-    }
-    xRight->left = x;
-    x->parent = xRight;
-}
 
-void RBTree::rotateRight(Node * x){
-    Node * xLeft = x->left;
-    x->left = xLeft->right;
-    if (xLeft->right != NullNode) {
-        xLeft->right->parent = x;
-    }
-    xLeft->parent = x->parent;
-    if (x->parent == nullptr) {
-        root = xLeft;
-    }
-    else if (x == x->parent->right) {
-        x->parent->right = xLeft;
-    }
-    else {
-        x->parent->left = xLeft;
-    }
-    xLeft->right = x;
-    x->parent = xLeft;
-}
-
-Node * RBTree::minRightNode(Node * x){
-    while(x->left != NullNode){
-        x = x->left;
-    }
-    return x;
-}
-
-Node * RBTree::maxLeftNode(Node * x){
-    while(x->right != NullNode){
-        x = x->right;
-    }
-    return x;
-}
-
-void RBTree::fixInsertRBTree(Node * x){
-    while(x->parent != nullptr && x->parent->color == RED){
-        if(x->parent == x->parent->parent->left){
-            Node * uncle = x->parent->parent->right;
-            if(uncle->color == RED){
-                uncle->color = BLACK;
-                x->parent->color = BLACK;
-                x->parent->parent->color = RED;
-                x = x->parent->parent;
-            } else {
-                if(x == x->parent->right){
-                    x = x->parent;
-                    rotateLeft(x);
-                }
-                x->parent->color = BLACK;
-                x->parent->parent->color = RED;
-                rotateRight(x->parent->parent);
-            }
-        } else {
-            Node * uncle = x->parent->parent->left;
-            if(uncle->color == RED){
-                uncle->color = BLACK;
-                x->parent->color = BLACK;
-                x->parent->parent->color = RED;
-                x = x->parent->parent;
-            } else {
-                if(x == x->parent->left){
-                    x = x->parent;
-                    rotateRight(x);
-                }
-                x->parent->color = BLACK;
-                x->parent->parent->color = RED;
-                rotateLeft(x->parent->parent);
-            }
+    void preOrderHelper(Node* node) {
+        if (node != TNULL) {
+            std::cout << node->key << " ";
+            preOrderHelper(node->left);
+            preOrderHelper(node->right);
         }
     }
-    root->color = BLACK;
-}
 
+    void inOrderHelper(Node* node) {
+        if (node != TNULL) {
+            inOrderHelper(node->left);
+            std::cout << node->key << " ";
+            inOrderHelper(node->right);
+        }
+    }
 
-void RBTree::fixDeleteRBTree(Node * x) {
-    Node * bro;
-    while(x != root && x->color == BLACK){
-        if(x == x->parent->left){
-            bro = x->parent->right;
-            if(bro->color == RED){
-                bro->color = BLACK;
-                x->parent->color = RED;
-                rotateLeft(x->parent);
-                bro = x->parent->right; 
-            }
-            if(bro->left->color == BLACK && bro->right->color == BLACK){
-                bro->color = RED;
-                x = x->parent;
-            } else {
-                if(bro->right->color == BLACK){
-                    bro->left->color = BLACK;
-                    bro->color = RED;
-                    rotateRight(bro);
-                    bro = x->parent->right;
-                }
-                bro->color = x->parent->color;
-                x->parent->color = BLACK;
-                bro->right->color = BLACK;
-                rotateLeft(x->parent);
-                x = root;
-            }
+    void postOrderHelper(Node* node) {
+        if (node != TNULL) {
+            postOrderHelper(node->left);
+            postOrderHelper(node->right);
+            std::cout << node->key << " ";
+        }
+    }
+
+    Node* searchTreeHelper(Node* node, std::string key) {
+        if (node == TNULL || key == node->key) {
+            return node;
+        }
+
+        if (key < node->key) {
+            return searchTreeHelper(node->left, key);
+        }
+        return searchTreeHelper(node->right, key);
+    }
+void fixDelete(Node* x) {
+    while (x != root && x->color == BLACK) {
+        if (x == x->parent->left) {
+            handleLeftCase(x);
         } else {
-            bro = x->parent->left;
-            if(bro->color == RED){
-                bro->color = BLACK;
-                x->parent->color = RED;
-                rotateRight(x->parent);
-                bro = x->parent->left;
-            }
-            if(bro->right->color == BLACK && bro->left->color == BLACK){
-                bro->color = RED;
-                x = x->parent;
-            } else {
-                if(bro->left->color == BLACK){
-                    bro->right->color = BLACK;
-                    bro->color = RED;
-                    rotateLeft(bro);
-                    bro = x->parent->left;
-                }
-                bro->color = x->parent->color;
-                x->parent->color = BLACK;
-                bro->left->color = BLACK;
-                rotateRight(x->parent);
-                x = root;
-            }
+            handleRightCase(x);
         }
     }
     x->color = BLACK;
 }
 
-string RBTree::insertValue(const string& key, ull value){
-    Node * newNode = new Node();
-    newNode->key = key;
-    newNode->value = value;
-    newNode->left = NullNode;
-    newNode->right = NullNode;
-    newNode->parent = nullptr;
-    newNode->color = RED;
-
-    Node * curr = root;
-    Node * currPar = nullptr;
-
-    while(curr != NullNode){
-        currPar = curr;
-        int comp = compareString(curr->key, key);
-        if(comp == 1){
-            curr = curr->left;
-        } else if (comp == -1){
-            curr = curr->right;
-        } else {
-            delete newNode;
-            return "Exist\n";
-        }
+void handleLeftCase(Node* &x) {
+    Node* s = x->parent->right;
+    if (s->color == RED) {
+        s->color = BLACK;
+        x->parent->color = RED;
+        leftRotate(x->parent);
+        s = x->parent->right;
     }
 
-    newNode->parent = currPar;
-    if(currPar == nullptr){
-        root = newNode;
+    if (s->left->color == BLACK && s->right->color == BLACK) {
+        s->color = RED;
+        x = x->parent;
     } else {
-        int comp = compareString(newNode->key, currPar->key);
-        if(comp == 1){
-            currPar->right = newNode;
-        } else {
-            currPar->left = newNode;
+        if (s->right->color == BLACK) {
+            s->left->color = BLACK;
+            s->color = RED;
+            rightRotate(s);
+            s = x->parent->right;
         }
-    }
 
-    if(newNode->parent == nullptr){
-        newNode->color = BLACK;
-        return "OK\n";
-    } else if(newNode->parent->parent == nullptr){
-        return "OK\n";
+        s->color = x->parent->color;
+        x->parent->color = BLACK;
+        s->right->color = BLACK;
+        leftRotate(x->parent);
+        x = root;
     }
-    fixInsertRBTree(newNode);
-    return "OK\n";
 }
 
-string RBTree::deleteValue(const string &key){
-    Node * curr = root;
-    Node * rem = NullNode, * fix, * temp;
-    while(curr != NullNode){
-        int comp = compareString(curr->key, key);
-        if(comp == 1){
-            curr = curr->left;
-        } else if (comp == -1){
-            curr = curr->right;
+void handleRightCase(Node* &x) {
+    Node* s = x->parent->left;
+    if (s->color == RED) {
+        s->color = BLACK;
+        x->parent->color = RED;
+        rightRotate(x->parent);
+        s = x->parent->left;
+    }
+
+    if (s->left->color == BLACK && s->right->color == BLACK) {
+        s->color = RED;
+        x = x->parent;
+    } else {
+        if (s->left->color == BLACK) {
+            s->right->color = BLACK;
+            s->color = RED;
+            leftRotate(s);
+            s = x->parent->left;
+        }
+
+        s->color = x->parent->color;
+        x->parent->color = BLACK;
+        s->left->color = BLACK;
+        rightRotate(x->parent);
+        x = root;
+    }
+}
+
+    void rbTransplant(Node* u, Node* v) {
+        if (u->parent == nullptr) {
+            root = v;
+        } else if (u == u->parent->left) {
+            u->parent->left = v;
         } else {
-            rem = curr;
+            u->parent->right = v;
+        }
+        v->parent = u->parent;
+    }
+
+    Node* findNodeToDelete(Node* node, std::string key) {
+    while (node != TNULL) {
+        if (node->key == key) {
+            return node;
+        }
+
+        if (node->key <= key) {
+            node = node->right;
+        } else {
+            node = node->left;
+        }
+    }
+    return TNULL;
+}
+
+void removeNode(Node* z) {
+    Node* y = z;
+    Node* x;
+    Color y_original_color = y->color;
+    if (z->left == TNULL) {
+        x = z->right;
+        rbTransplant(z, z->right);
+    } else if (z->right == TNULL) {
+        x = z->left;
+        rbTransplant(z, z->left);
+    } else {
+        y = minimum(z->right);
+        y_original_color = y->color;
+        x = y->right;
+        if (y->parent == z) {
+            x->parent = y;
+        } else {
+            rbTransplant(y, y->right);
+            y->right = z->right;
+            y->right->parent = y;
+        }
+
+        rbTransplant(z, y);
+        y->left = z->left;
+        y->left->parent = y;
+        y->color = z->color;
+    }
+    delete z;
+    if (y_original_color == BLACK) {
+        fixDelete(x);
+    }
+}
+
+void deleteNodeHelper(Node* node, std::string key) {
+    Node* z = findNodeToDelete(node, key);
+    if (z == TNULL) {
+        std::cout << "NoSuchWord\n";
+        return;
+    }
+    removeNode(z);
+    std::cout << "OK\n";
+}
+
+void fixInsert(Node* k) {
+    while (k->parent->color == RED) {
+        if (k->parent == k->parent->parent->right) {
+            handleRightParentCase(k);
+        } else {
+            handleLeftParentCase(k);
+        }
+        if (k == root) {
             break;
         }
     }
- 
-    if(rem == NullNode){
-        return "NoSuchWord\n";
-    }
-        
-    temp = rem;
-    Tcolor TempColor = temp->color;
-    if(rem->left == NullNode){
-        fix = rem->right;
-        if(rem->parent == nullptr){
-            root = rem->right;
-        } else {
-            if(rem == rem->parent->left){
-                rem->parent->left = rem->right;
-            } else {
-                rem->parent->right = rem->right;
-            }
-        }
-        rem->right->parent = rem->parent;
-    } else if(rem->right == NullNode){
-        fix = rem->left;
-        if(rem->parent == nullptr){
-            root = rem->left;
-        } else {
-            if(rem == rem->parent->left){
-                rem->parent->left = rem->left;
-            } else {
-                rem->parent->right = rem->left;
-            }
-        }
-        rem->left->parent = rem->parent;
+    root->color = BLACK;
+}
+
+void handleRightParentCase(Node* &k) {
+    Node* u = k->parent->parent->left;
+    if (u->color == RED) {
+        recolor(k, u);
+        k = k->parent->parent;
     } else {
-        temp = minRightNode(rem->right);
-        TempColor = temp->color;
-        fix = temp->right;
-        if(temp->parent == rem){
-            fix->parent = temp;
-        } else {
-            if(temp->parent == nullptr){
-                root = temp->right;
-            } else {
-                if(temp == temp->parent->left){
-                    temp->parent->left = temp->right;
-                } else {
-                    temp->parent->right = temp->right;
-                }
-            }
-            temp->right->parent = temp->parent;
-            temp->right = rem->right;
-            temp->right->parent = temp;
+        if (k == k->parent->left) {
+            k = k->parent;
+            rightRotate(k);
         }
-        if(rem->parent == nullptr){
-            root = temp;
-        } else {
-            if(rem == rem->parent->left){
-                rem->parent->left = temp;
-            } else {
-                rem->parent->right = temp;
-            }
-        }
-        temp->parent = rem->parent;
-        temp->left = rem->left;
-        temp->left->parent = temp;
-        temp->color = rem->color;
+        k->parent->color = BLACK;
+        k->parent->parent->color = RED;
+        leftRotate(k->parent->parent);
     }
-    delete rem;
-    if(TempColor == BLACK){
-        fixDeleteRBTree(fix);
-    }
-    return "OK\n";
 }
 
-void RBTree::erace(Node * x){
-    if(x == NullNode){
-        return;
+void handleLeftParentCase(Node* &k) {
+    Node* u = k->parent->parent->right;
+    if (u->color == RED) {
+        recolor(k, u);
+        k = k->parent->parent;
+    } else {
+        if (k == k->parent->right) {
+            k = k->parent;
+            leftRotate(k);
+        }
+        k->parent->color = BLACK;
+        k->parent->parent->color = RED;
+        rightRotate(k->parent->parent);
     }
-    if(x->left != NullNode){
-        erace(x->left);
-    }
-    if(x->right != NullNode){
-        erace(x->right);
-    }
-    delete x;
-    root = NullNode;
 }
 
-void RBTree::get(const string &key){
-    Node * curr = root;
-    while(curr != NullNode){
-        int comp = compareString(curr->key, key);
-        if(comp == 1){
-            curr = curr->left;
-        } else if (comp == -1){
-            curr = curr->right;
+void recolor(Node* &k, Node* &u) {
+    u->color = BLACK;
+    k->parent->color = BLACK;
+    k->parent->parent->color = RED;
+}
+
+
+    void printHelper(Node* root, std::string indent, bool last) {
+        if (root != TNULL) {
+            std::cout << indent;
+            if (last) {
+                std::cout << "R----";
+                indent += "   ";
+            } else {
+                std::cout << "L----";
+                indent += "|  ";
+            }
+
+            std::string sColor = root->color ? "BLACK" : "RED";
+            std::cout << root->key << "(" << sColor << ")" << std::endl;
+            printHelper(root->left, indent, false);
+            printHelper(root->right, indent, true);
+        }
+    }
+
+public:
+    RBTree() {
+        TNULL = new Node("", 0);
+        TNULL->color = BLACK;
+        root = TNULL;
+    }
+
+    void setRoot(Node* node) {
+        root = node;
+        if (root != TNULL) {
+            root->parent = nullptr;
+        }
+    }
+
+    void preorder() {
+        preOrderHelper(this->root);
+    }
+
+    void inorder() {
+        inOrderHelper(this->root);
+    }
+
+    void postorder() {
+        postOrderHelper(this->root);
+    }
+
+    Node* searchTree(std::string k) {
+        return searchTreeHelper(this->root, k);
+    }
+
+    Node* minimum(Node* node) {
+        while (node->left != TNULL) {
+            node = node->left;
+        }
+        return node;
+    }
+
+    Node* maximum(Node* node) {
+        while (node->right != TNULL) {
+            node = node->right;
+        }
+        return node;
+    }
+
+    Node* successor(Node* x) {
+        if (x->right != TNULL) {
+            return minimum(x->right);
+        }
+
+        Node* y = x->parent;
+        while (y != TNULL && x == y->right) {
+            x = y;
+            y = y->parent;
+        }
+        return y;
+    }
+
+    Node* predecessor(Node* x) {
+        if (x->left != TNULL) {
+            return maximum(x->left);
+        }
+
+        Node* y = x->parent;
+        while (y != TNULL && x == y->left) {
+            x = y;
+            y = y->parent;
+        }
+
+        return y;
+    }
+
+    void leftRotate(Node* x) {
+        Node* y = x->right;
+        x->right = y->left;
+        if (y->left != TNULL) {
+            y->left->parent = x;
+        }
+        y->parent = x->parent;
+        if (x->parent == nullptr) {
+            this->root = y;
+        } else if (x == x->parent->left) {
+            x->parent->left = y;
         } else {
-            cout << "OK: " << curr->value << "\n";
+            x->parent->right = y;
+        }
+        y->left = x;
+        x->parent = y;
+    }
+
+    void rightRotate(Node* x) {
+        Node* y = x->left;
+        x->left = y->right;
+        if (y->right != TNULL) {
+            y->right->parent = x;
+        }
+        y->parent = x->parent;
+        if (x->parent == nullptr) {
+            this->root = y;
+        } else if (x == x->parent->right) {
+            x->parent->right = y;
+        } else {
+            x->parent->left = y;
+        }
+        y->right = x;
+        x->parent = y;
+    }
+
+    Node* findParentNode(Node* node) {
+        Node* y = nullptr;
+        Node* x = root;
+        while (x != TNULL) {
+            y = x;
+            if (node->key < x->key) {
+                x = x->left;
+            } else if (node->key > x->key) {
+                x = x->right;
+            } else {
+                return nullptr;
+            }
+        }
+        return y;
+    }
+
+    Node* createNode(std::string key, uint64_t value) {
+    Node* node = new Node(key, value);
+    node->parent = nullptr;
+    node->left = TNULL;
+    node->right = TNULL;
+    node->color = RED;
+    return node;
+}
+
+bool findInsertionPoint(Node* &node, Node* &y, Node* &x) {
+    while (x != TNULL) {
+        y = x;
+        if (node->key < x->key) {
+            x = x->left;
+        } else if (node->key > x->key) {
+            x = x->right;
+        } else {
+            std::cout << "Exist\n";
+            delete node;
+            return false;
+        }
+    }
+    return true;
+}
+
+bool attachNode(Node* node, Node* y) {
+    node->parent = y;
+    if (y == nullptr) {
+        root = node;
+    } else if (node->key < y->key) {
+        y->left = node;
+    } else {
+        y->right = node;
+    }
+
+    if (node->parent == nullptr) {
+        node->color = BLACK;
+        std::cout << "OK\n";
+        return false;
+    }
+    return true;
+}
+
+bool handleInsertionCases(Node* node) {
+    if (node->parent->parent == nullptr) {
+        std::cout << "OK\n";
+        return false; 
+    }
+    fixInsert(node);
+    std::cout << "OK\n";
+    return true;
+}
+
+
+void insert(std::string key, uint64_t value) {
+        Node* node = createNode(key, value);
+        Node* y = nullptr;
+        Node* x = this->root;
+
+        if(findInsertionPoint(node, y, x) == false){return;}
+
+        if(attachNode(node,y) == false){return;}
+
+        if(handleInsertionCases(node) == false){return;}
+}
+void deleteNode(std::string key) {
+    deleteNodeHelper(this->root, key);
+}
+
+void printTree() {
+    if (root) {
+        printHelper(this->root, "", true);
+    }
+}
+
+    void saveToFile(const std::string& filename) {
+        std::ofstream outFile(filename, std::ios::binary);
+        if (!outFile) {
+            std::cerr << "ERROR: Could not open file for writing" << std::endl;
             return;
         }
+        saveHelper(outFile, root);
+        outFile.close();
     }
-    cout << "NoSuchWord\n";
-}
 
-void RBTree::saveFile(ofstream &file, Node * x){ 
-    if(x == NullNode){
-        return;
-    } else {
-        size_t n = x->key.size();
-        string key = x->key;
-        ull value = x->value;
-        file.write((char *)&n, sizeof(size_t));
-        file.write(key.c_str(), sizeof(char) * n);
-        file.write((char *)&value, sizeof(ull));
-        saveFile(file, x->left);
-        saveFile(file, x->right);
+    void loadFromFile(const std::string& filename) {
+        std::ifstream inFile(filename, std::ios::binary);
+        if (!inFile) {
+            std::cerr << "ERROR: Could not open file for reading" << std::endl;
+            return;
+        }
+        clear();
+        root = loadHelper(inFile, nullptr);
+        inFile.close();
     }
-}
 
-void RBTree::loadFile(ifstream &file){
-    erace(root);
-    if(file.peek() == EOF){
-        cout << "OK\n";
-        return;
+    void saveHelper(std::ofstream &outFile, Node* node) {
+        if (node == TNULL) {
+            outFile.put(0);
+            return;
+        }
+        outFile.put(1);
+        size_t keySize = node->key.size();
+        outFile.write(reinterpret_cast<char*>(&keySize), sizeof(keySize));
+        outFile.write(node->key.data(), keySize);
+        outFile.write(reinterpret_cast<char*>(&node->value), sizeof(node->value));
+        outFile.write(reinterpret_cast<char*>(&node->color), sizeof(node->color));
+        saveHelper(outFile, node->left);
+        saveHelper(outFile, node->right);
     }
-    size_t n;
-    string key;
-    ull value;
-    file.read((char *)&n, sizeof(size_t));
-    while(n != -1){
-        key.clear();
-        key.resize(n);
-        file.read((char *)key.data(), sizeof(char) * n);
-        file.read((char *)&value, sizeof(ull));
-        insertValue(key, value);
-        file.read((char *)&n, sizeof(size_t));
+
+    Node* loadHelper(std::ifstream &inFile, Node* parent) {
+        char flag;
+        inFile.get(flag);
+        if (!inFile || flag == 0) {
+            return TNULL;
+        }
+        size_t keySize;
+        inFile.read(reinterpret_cast<char*>(&keySize), sizeof(keySize));
+        std::string key(keySize, '\0');
+        inFile.read(&key[0], keySize);
+        uint64_t value;
+        inFile.read(reinterpret_cast<char*>(&value), sizeof(value));
+        Color color;
+        inFile.read(reinterpret_cast<char*>(&color), sizeof(color));
+
+        Node* node = new Node(key, value);
+        node->color = color;
+        node->parent = parent;
+        node->left = loadHelper(inFile, node);
+        node->right = loadHelper(inFile, node);
+
+        return node;
     }
-    cout << "OK\n";
-}
 
-void RBTree::print(Node * x, int level){
-    if(x != NullNode){
-        cout << level << " " << x->key << " " << x->value << " " << x->color << "\n";
-        level++;
-        print(x->left, level);
-        print(x->right, level);
-        cout << "--" << x->key << "--\n";
+    void clear() {
+        clearHelper(root);
+        root = TNULL;
     }
-}
 
-std::string RBTree::toLower(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-    return str;
-}
-
-int RBTree::compareString(const string &x, const string &y){
-    if(x.length() > y.length()){
-        return 1;
-    } else if (x.length() < y.length()){
-       return -1;
-    } else {
-    for(int i = 0; i < x.length(); i++){
-        if(x[i] > y[i]){
-            return 1;
-        } else if (x[i] < y[i]){
-            return -1;
+    void clearHelper(Node* node) {
+        if (node != TNULL) {
+            clearHelper(node->left);
+            clearHelper(node->right);
+            delete node;
         }
     }
+};
+
+class Dictionary {
+private:
+    RBTree tree;
+
+    std::string toLowerCase(const std::string& str) {
+        std::string lowerStr = str;
+        std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+        return lowerStr;
     }
-    return 0;
-}
+
+public:
+    void add(const std::string& word, uint64_t number) {
+        std::string lowerWord = toLowerCase(word);
+        tree.insert(lowerWord, number);
+    }
+
+    void remove(const std::string& word) {
+        std::string lowerWord = toLowerCase(word);
+        tree.deleteNode(lowerWord);
+    }
+
+    void find(const std::string& word) {
+        std::string lowerWord = toLowerCase(word);
+        Node* result = tree.searchTree(lowerWord);
+        if (result != nullptr && result->key != "") {
+            std::cout << "OK: " << result->value << "\n";
+        } else {
+            std::cout << "NoSuchWord\n";
+        }
+    }
+
+    void save(const std::string& filePath) {
+        try {
+            tree.saveToFile(filePath);
+            std::cout << "OK\n";
+        } catch (const std::exception& e) {
+            std::cerr << "ERROR: " << e.what() << "\n";
+        }
+    }
+
+    void load(const std::string& filePath) {
+        try {
+            tree.loadFromFile(filePath);
+            std::cout << "OK\n";
+        } catch (const std::exception& e) {
+            std::cerr << "ERROR: " << e.what() << "\n";
+        }
+    }
+};
+
 
 int main() {
-    // ios::sync_with_stdio(false);
-    // cin.tie(0);
-    RBTree tree;
-    string command, key, path, answer;
-    ull value;
-    while (cin >> command) {
-        try {
-            if (command == "+") {
-                cin >> key >> value;
-                key = tree.toLower(key);
-                answer = tree.insertValue(key, value);
-                cout << answer;
-            } else if (command == "-") {
-                cin >> key;
-                key = tree.toLower(key);
-                answer = tree.deleteValue(key);
-                cout << answer;
-            } else if (command == "!") {
-                // cin >> command;
-                // if (command == "Save") {
-                //     cin >> path;
-                //     ofstream file;
-                //     file.open(path, ios_base::binary);
-                //     if (!file) throw runtime_error("Unable to open file for writing");
-                //     tree.saveFile(file, tree.root);
-                //     cout << "OK\n";
-                //     size_t i = -1;
-                //     file.write((char *)&i, sizeof(size_t));
-                //     file.close();
-                // } else if (command == "Load") {
-                //     cin >> path;
-                //     ifstream file;
-                //     file.open(path, ios_base::binary);
-                //     if (!file) throw runtime_error("Unable to open file for reading");
-                //     tree.loadFile(file);
-                //     file.close();
-                // }
-            } else {
-                key = tree.toLower(command);
-                tree.get(key);
+    Dictionary dict;
+    std::string command;
+
+    while (std::getline(std::cin, command)) {
+        std::istringstream iss(command);
+        std::string operation, word, filePath;
+        uint64_t number;
+
+        iss >> operation;
+        if (operation == "+") {
+            iss >> word >> number;
+            dict.add(word, number);
+        } else if (operation == "-") {
+            iss >> word;
+            dict.remove(word);
+        } else if (operation == "!") {
+            iss >> word >> filePath;
+            if (word == "Save") {
+                dict.save(filePath);
+            } else if (word == "Load") {
+                dict.load(filePath);
             }
-        } catch (const bad_alloc &) {
-            cout << "ERROR: Not enough memory\n";
-        } catch (const runtime_error &e) {
-            cout << "ERROR: " << e.what() << '\n';
-        } catch (...) {
-            cout << "ERROR: n";
+        } else {
+            dict.find(operation);
         }
     }
+
     return 0;
 }
