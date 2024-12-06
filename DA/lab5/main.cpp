@@ -24,11 +24,11 @@ struct ST {
         }
     };
 
-    node* active_node;
+    node* active_node = nullptr;
     node* root;
     node* from_node = nullptr;
 
-    ST() : end(0), s(""), active_node(new node()), root(new node()) {
+    ST() : end(0), s(""), active_node(nullptr), root(new node()) {
         // Инициализация cur_node и root как новых объектов node
     }
 
@@ -42,92 +42,97 @@ struct ST {
         par->next[c] = child;
     }
 
-    void go(){
-        while(deb_l < deb_r){
-            if (active_node->l + (deb_r - deb_l) <= active_node->r){
-                pos = (deb_r - deb_l);
-                deb_l = active_node->l + pos;
-                return;
-            }
-            else{
-                if ( active_node->next[s[deb_l]] != nullptr){
-                    active_node = active_node->next[s[deb_l]];
-                    deb_l = active_node->l;}
-                else{
-                    // если нету создать??? или не может не быть?
-                    return;
-                }
-            }
+    void go() {
+    while (deb_l < deb_r) {
+        cout << "In go(): active_node->l = " << active_node->l 
+             << ", deb_r = " << deb_r 
+             << ", deb_l = " << deb_l 
+             << ", active_node->r = " << active_node->r << endl;
+        if (active_node->l + (deb_r - deb_l) <= active_node->r) {
+            pos = (deb_r - deb_l);
+            deb_l = active_node->l + pos;
             return;
+        } else {
+            auto it = active_node->next.find(s[deb_l]);
+            if (it != active_node->next.end()) {
+                active_node = it->second;
+                deb_l = active_node->l;
+            } else {
+                return; // Если перехода нет, завершаем выполнение
+            }
         }
     }
+}
+
+void split(char c) {
+    if (remainder == 0) { 
+        from_node = nullptr; 
+        return; 
+    }
+
+    active_node->r = active_node->l + pos;
+
+    // Создаем узел для старой ветки
+    node* tmp_node1 = new node(active_node->l + pos, end - 1);
+    add_node(active_node, tmp_node1, s[active_node->l + pos]);
+
+    // Создаем узел для нового символа
+    node* tmp_node2 = new node(end - 1, end - 1);
+    add_node(active_node, tmp_node2, c);
+
+    remainder--; // Уменьшаем количество оставшихся суффиксов
     
-    void split(char c){
-        active_node->r = active_node->l + pos;
-        // сохрраняем старую ветку
-        node* tmp_node1 = new node(active_node->l + pos, end-1); 
-        add_node(active_node, tmp_node1, s[active_node->l + pos]);
-        // докидываем новую с новым символом
-        node* tmp_node2 = new node(end-1, end-1); 
-        add_node(active_node, tmp_node2, c);
-        remainder = 0;
-        deb_l = active_node->l + 1;
-        deb_r = active_node->r;
-        // добавляем линку
-        if (from_node != nullptr){
-            from_node->link = tmp_node2->par;
-        }
-        from_node = tmp_node2->par;
-        active_node = active_node->par;
-        // у предыдущей вершины есть линка 
-        if(active_node->link != nullptr){ active_node = active_node->link;}
-        // у предыдущей вершины нет линки (корень?)
+    deb_l = active_node->l + 1;
+    deb_r = active_node->r;
 
-        // ищем первую букву у паттерна должников
-        if ( active_node->next[s[deb_l]] != nullptr){
-            // cout << s[deb_l] << '\n';
-            active_node = active_node->next[s[deb_l]];
-            deb_l = active_node->l;
-        }
-        else{
-            // если нету создать??? или не может не быть?
-            return;
-        }
-    
-        go();
-        return;
-        split(s[active_node->l + (deb_r - deb_l)]);
+    if (from_node != nullptr) {
+        from_node->link = tmp_node2->par;
+    }
+    from_node = tmp_node2->par;
+
+    active_node = active_node->par;
+
+    if (active_node->link != nullptr) {
+        active_node = active_node->link;
     }
 
-    void add(char c) {
-        // cout << c << "~!~\n";
-        s += c;
-        end++;
-        if(remainder){
-            if( s[active_node->l+pos] == c){
-                pos++;
-                // remainder++
-            }
-            else{
-                // cout << pos << '\n';
-                split(c);
-            }
-
-        }
-        else{
-            if(root->get(c) == 1){
-                remainder++;
-                pos++;
-                active_node = root->next[c];
-            }
-            else{
-                node* tmp_node = new node(end-1, end-1); // Устанавливаем l и r
-                add_node(root, tmp_node, c);
-            }
-        }
-
-
+    auto it = active_node->next.find(s[deb_l]);
+    if (it != active_node->next.end()) {
+        active_node = it->second;
+        deb_l = active_node->l;
+    } else {
+        return; // Если перехода нет, выходим
     }
+
+    go();
+    pos--; // Корректируем pos для следующей итерации
+    split(s[active_node->l + (deb_r - deb_l)]);
+}
+
+void add(char c) {
+    s += c;
+    end++;
+    if (remainder) {
+        if (s[active_node->l + pos] == c) {
+            pos++;
+            remainder++;
+        } else {
+            split(c);
+            node* tmp_node = new node(end - 1, end - 1);
+            add_node(root, tmp_node, c);
+        }
+    } else {
+        if (root->get(c) == 1) {
+            remainder++;
+            pos++;
+            active_node = root->next[c];
+        } else {
+            node* tmp_node = new node(end - 1, end - 1);
+            add_node(root, tmp_node, c);
+        }
+    }
+}
+
 
     // Функция для печати дерева
     void print(node* n, int depth = 0) {
