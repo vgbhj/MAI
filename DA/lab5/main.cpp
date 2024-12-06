@@ -8,6 +8,7 @@ struct ST {
     int pos = 0, remainder = 0;
     // debtor - должник
     int deb_l, deb_r;
+    char true_c;
 
     struct node {
         int l, r;
@@ -38,16 +39,17 @@ struct ST {
     }
 
     void add_node(node *par, node *child, char c){
+        // cout << c << "???\n";
         child->par = par;
         par->next[c] = child;
     }
 
     void go() {
     while (deb_l < deb_r) {
-        cout << "In go(): active_node->l = " << active_node->l 
-             << ", deb_r = " << deb_r 
-             << ", deb_l = " << deb_l 
-             << ", active_node->r = " << active_node->r << endl;
+        // cout << "In go(): active_node->l = " << active_node->l 
+        //      << ", deb_r = " << deb_r 
+        //      << ", deb_l = " << deb_l 
+        //      << ", active_node->r = " << active_node->r << endl;
         if (active_node->l + (deb_r - deb_l) <= active_node->r) {
             pos = (deb_r - deb_l);
             deb_l = active_node->l + pos;
@@ -78,7 +80,7 @@ void split(char c) {
 
     // Создаем узел для нового символа
     node* tmp_node2 = new node(end - 1, end - 1);
-    add_node(active_node, tmp_node2, c);
+    add_node(active_node, tmp_node2, true_c);
 
     remainder--; // Уменьшаем количество оставшихся суффиксов
     
@@ -117,6 +119,7 @@ void add(char c) {
             pos++;
             remainder++;
         } else {
+            true_c = c;
             split(c);
             node* tmp_node = new node(end - 1, end - 1);
             add_node(root, tmp_node, c);
@@ -173,7 +176,7 @@ void add(char c) {
 int main() {
     // ABCDYFABC$
     ST st;
-    string text = "ABCDYFABC$";
+    string text = "abcabxabcd";
     for (auto _ : text) {
         st.add(_);
     }
