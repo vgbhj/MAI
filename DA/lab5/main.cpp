@@ -29,8 +29,10 @@ struct ST {
     node* root;
     node* from_node = nullptr;
 
-    ST() : end(0), s(""), active_node(nullptr), root(new node()) {
-        // Инициализация cur_node и root как новых объектов node
+    ST() : end(0), pos(0), remainder(0), deb_l(0), deb_r(0) {
+        root = new node();
+        active_node = root;
+        from_node = nullptr;
     }
 
     ~ST() {
@@ -115,7 +117,12 @@ void add(char c) {
     s += c;
     end++;
     if (remainder) {
-        if (s[active_node->l + pos] == c) {
+        if (active_node->get(c) == 1) {
+            remainder++;
+            pos++;
+            active_node = active_node->next[c];
+        }
+        else if (s[active_node->l + pos] == c) {
             pos++;
             remainder++;
         } else {
@@ -123,6 +130,8 @@ void add(char c) {
             split(c);
             node* tmp_node = new node(end - 1, end - 1);
             add_node(root, tmp_node, c);
+            pos = 0;
+            // active_node = root;
         }
     } else {
         if (root->get(c) == 1) {
@@ -157,7 +166,8 @@ void add(char c) {
 
         // Вывод информации о текущем узле
         cout << string(depth * 2, ' ') << "Node: " << info << ", \""<< substring
-            << "\", link=" << n->link << endl;
+            // << "\", link=" << n->link << endl;
+            << "\", link=" << n->link << "  адрес: " << n << endl;
 
         // Рекурсивный вызов для всех дочерних узлов
         for (auto& child : n->next) {
@@ -180,6 +190,10 @@ int main() {
     for (auto _ : text) {
         st.add(_);
     }
+
+    cout << st.active_node << '\n';
+    cout << st.remainder << '\n';
+    cout << st.pos << '\n';
 
     // Печать дерева
     st.print();
