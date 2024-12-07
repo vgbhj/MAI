@@ -29,6 +29,9 @@ struct SuffixTree {
     }
 
     void add_char(char c) {
+
+        print();
+        cout << c <<" =====\n";
         s += c;
         pos++;
         remainder++;
@@ -40,6 +43,7 @@ struct SuffixTree {
             char current_char = s[active_edge];
             if (!active_node->next.count(current_char)) {
                 Node* leaf = new Node(pos, size);
+                // leaf->string_mask = (c == '#') ? 1 : (c == '$') ? 2 : 0; // Помечаем лист
                 active_node->next[current_char] = leaf;
 
                 if (last_new_node) {
@@ -60,9 +64,12 @@ struct SuffixTree {
                 }
 
                 Node* split = new Node(next->l, next->l + active_length);
+                // split->string_mask = (c == '#') ? 1 : (c == '$') ? 2 : 0;
                 active_node->next[current_char] = split;
                 Node* leaf = new Node(pos, size);
+                // leaf->string_mask = (c == '#') ? 1 : (c == '$') ? 2 : 0; // Помечаем лист
                 split->next[c] = leaf;
+
                 next->l += active_length;
                 split->next[s[next->l]] = next;
 
@@ -98,19 +105,6 @@ struct SuffixTree {
         }
     }
 
-    void print(Node* node, int depth = 0) {
-        if (node == nullptr) return;
-
-        for (auto& p : node->next) {
-            cout << string(depth * 2, ' ') << "[" << s.substr(p.second->l, p.second->length(pos)) << "]\n";
-            print(p.second, depth + 1);
-        }
-    }
-
-    void print() {
-        print(root);
-    }
-
     void dfs(Node* node, int depth, int& max_len, set<string>& results) {
         if (!node) return;
 
@@ -127,13 +121,13 @@ struct SuffixTree {
 
         // Если узел пересекается между двумя строками
         if (node->string_mask == 3) {
-            int len = depth + node->length(pos);
+            int len = depth;
             if (len > max_len) {
                 max_len = len;
                 results.clear();
             }
             if (len == max_len) {
-                results.insert(s.substr(node->l - max_len, max_len));
+                results.insert(s.substr(pos - len, len));
             }
         }
     }
@@ -143,6 +137,19 @@ struct SuffixTree {
         set<string> results;
         dfs(root, 0, max_len, results);
         return {max_len, results};
+    }
+
+    void print(Node* node, int depth = 0) {
+        if (!node) return;
+        for (auto& p : node->next) {
+            cout << string(depth * 2, ' ') << "[" << s.substr(p.second->l, p.second->length(pos)) << "]"
+                 << " mask=" << p.second->string_mask << "\n";
+            print(p.second, depth + 1);
+        }
+    }
+
+    void print() {
+        print(root);
     }
 };
 
@@ -155,11 +162,11 @@ int main() {
     SuffixTree st;
     st.build(combined);
     st.print();
-    // auto result = st.find_longest_common_substring();
-    // cout << result.first << endl;
-    // for (const auto& substr : result.second) {
-    //     cout << substr << endl;
-    // }
+    auto result = st.find_longest_common_substring();
+    cout << result.first << endl;
+    for (const auto& substr : result.second) {
+        cout << substr << endl;
+    }
 
     return 0;
 }
