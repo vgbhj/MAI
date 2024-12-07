@@ -6,7 +6,8 @@ struct SuffixTree {
         int l, r; // Индексы на строке: [l, r)
         map<char, Node*> next; // Переходы по символам
         Node* link; // Суффиксная ссылка
-        Node(int l = 0, int r = 0) : l(l), r(r), link(nullptr) {}
+        int string_mask; // Маска строк, которые присутствуют в поддереве узла
+        Node(int l = 0, int r = 0) : l(l), r(r), link(nullptr), string_mask(0) {}
         int length(int end) const { return min(r, end + 1) - l; } // Длина ребра
     };
 
@@ -15,8 +16,8 @@ struct SuffixTree {
     Node* active_node; // Текущая активная вершина
     int active_edge, active_length; // Активное ребро и длина
     int remainder; // Оставшиеся суффиксы
-    int pos;
-    int size;
+    int pos; // Позиция в строке
+    int size; // Размер строки
 
     SuffixTree() : root(new Node()), active_node(root), active_edge(0), active_length(0), remainder(0), pos(-1) {}
 
@@ -38,7 +39,6 @@ struct SuffixTree {
 
             char current_char = s[active_edge];
             if (!active_node->next.count(current_char)) {
-                // Если ребро не существует, создаем новое
                 Node* leaf = new Node(pos, size);
                 active_node->next[current_char] = leaf;
 
@@ -111,102 +111,55 @@ struct SuffixTree {
         print(root);
     }
 
-    // int search(const string& pattern) {
-    //     Node* current = root;
-    //     int i = 0; // Индекс в строке `pattern`
-    //     int length = pattern.length();
-    //     int matched = 0;
+    void dfs(Node* node, int depth, int& max_len, set<string>& results) {
+        if (!node) return;
 
-    //     while (i < length) {
-    //         auto it = current->next.find(pattern[i]);
-    //         if (it == current->next.end()) break; // Перехода нет, строка не найдена
-
-    //         Node* next = it->second;
-    //         int edge_len = next->length(pos);
-
-    //         for (int j = 0; j < edge_len && i < length; ++j) {
-    //             if (s[next->l + j] != pattern[i]) return matched; // Несовпадение символа
-    //             i++;
-    //             matched++;
-    //         }
-
-    //         current = next;
-    //     }
-
-    //     return matched; // Возвращаем количество совпавших символов
-    // }
-
-    struct SearchResult {
-        SuffixTree::Node* node; // Найденная вершина
-        int pos;                // Позиция на ребре относительно узла
-    };
-
-    SearchResult search(Node* current, const string& pattern) {
-        if (current == nullptr) current = root;
-        Node* next = nullptr;
-        int i = 0; // Индекс в строке `pattern`
-        int length = pattern.length();
-
-        while (i < length) {
-            auto it = current->next.find(pattern[i]);
-            if (it == current->next.end()) {
-                return {current, 0}; // Перехода нет, возвращаем текущий узел
-            }
-
-            Node* next = it->second;
-            int edge_len = next->length(pos);
-
-            for (int j = 0; j < edge_len && i < length; ++j) {
-                if (s[next->l + j] != pattern[i]) {
-                    return {current, j}; // Несовпадение, возвращаем текущий узел и позицию
-                }
-                i++;
-            }
-
-            current = next;
+        // Обновляем маску узла
+        if (node->l != node->r) {
+            if (s[node->l] == '#') node->string_mask |= 1;
+            if (s[node->l] == '$') node->string_mask |= 2;
         }
 
-        return {current, next->length(pos)}; // Полное совпадение, возвращаем конечный узел
-    }
+        for (auto& p : node->next) {
+            dfs(p.second, depth + p.second->length(pos), max_len, results);
+            node->string_mask |= p.second->string_mask; // Передаем маску вверх
+        }
 
-
-    
-    // match statistic
-    vector<int> ms_build(string& text){
-        vector<int> ms(text.length());
-        Node* current = root;
-        int index = 0;
-        while (index < text.length()){
-
+        // Если узел пересекается между двумя строками
+        if (node->string_mask == 3) {
+            int len = depth + node->length(pos);
+            if (len > max_len) {
+                max_len = len;
+                results.clear();
+            }
+            if (len == max_len) {
+                results.insert(s.substr(node->l - max_len, max_len));
+            }
         }
     }
 
+    pair<int, set<string>> find_longest_common_substring() {
+        int max_len = 0;
+        set<string> results;
+        dfs(root, 0, max_len, results);
+        return {max_len, results};
+    }
 };
 
 int main() {
-    string str1, str2;
-    getline(std::cin, str1);
-    getline(std::cin, str2);
-    
-    string text, pattern;
+    string a, b;
+    getline(cin, a);
+    getline(cin, b);
 
-    // Определение большей и меньшей строки
-    if (str1.length() >= str2.length()) {
-        text = str1;
-        pattern = str2;
-    } else {
-        text = str2;
-        pattern = str1;
-    }
-
-
-
-    // string text = "abcabxabcd";
+    string combined = a + "#" + b + "$";
     SuffixTree st;
-    st.build(pattern);
-
-    cout << "Suffix Tree Structure:\n";
+    st.build(combined);
     st.print();
+    // auto result = st.find_longest_common_substring();
+    // cout << result.first << endl;
+    // for (const auto& substr : result.second) {
+    //     cout << substr << endl;
+    // }
 
     return 0;
 }

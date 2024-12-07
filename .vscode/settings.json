@@ -4,6 +4,7 @@
         "queue": "cpp",
         "stack": "cpp",
         "__config": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "iostream": "cpp"
     }
 }
