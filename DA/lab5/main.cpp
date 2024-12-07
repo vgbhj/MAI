@@ -1,201 +1,211 @@
 #include <bits/stdc++.h>
-
 using namespace std;
 
-struct ST {
-    int end;
-    string s;
-    int pos = 0, remainder = 0;
-    // debtor - должник
-    int deb_l, deb_r;
-    char true_c;
-
-    struct node {
-        int l, r;
-        map<char, node*> next;
-        node* par;
-        node* link;
-
-        node(int l = 0, int r = 0, int par = -1)
-            : l(l), r(r), par(nullptr), link(nullptr) {}
-
-        int get (char c) {
-            if (!next.count(c))  return -1;
-            return 1;
-        }
+struct SuffixTree {
+    struct Node {
+        int l, r; // Индексы на строке: [l, r)
+        map<char, Node*> next; // Переходы по символам
+        Node* link; // Суффиксная ссылка
+        Node(int l = 0, int r = 0) : l(l), r(r), link(nullptr) {}
+        int length(int end) const { return min(r, end + 1) - l; } // Длина ребра
     };
 
-    node* active_node = nullptr;
-    node* root;
-    node* from_node = nullptr;
+    string s;
+    Node* root; // Корень дерева
+    Node* active_node; // Текущая активная вершина
+    int active_edge, active_length; // Активное ребро и длина
+    int remainder; // Оставшиеся суффиксы
+    int pos;
+    int size;
 
-    ST() : end(0), pos(0), remainder(0), deb_l(0), deb_r(0) {
-        root = new node();
-        active_node = root;
-        from_node = nullptr;
+    SuffixTree() : root(new Node()), active_node(root), active_edge(0), active_length(0), remainder(0), pos(-1) {}
+
+    ~SuffixTree() { delete_tree(root); }
+
+    void delete_tree(Node* node) {
+        for (auto& p : node->next) delete_tree(p.second);
+        delete node;
     }
 
-    ~ST() {
-        delete active_node;
-        delete root;
-    }
+    void add_char(char c) {
+        s += c;
+        pos++;
+        remainder++;
+        Node* last_new_node = nullptr;
 
-    void add_node(node *par, node *child, char c){
-        // cout << c << "???\n";
-        child->par = par;
-        par->next[c] = child;
-    }
+        while (remainder > 0) {
+            if (active_length == 0) active_edge = pos;
 
-    void go() {
-    while (deb_l < deb_r) {
-        // cout << "In go(): active_node->l = " << active_node->l 
-        //      << ", deb_r = " << deb_r 
-        //      << ", deb_l = " << deb_l 
-        //      << ", active_node->r = " << active_node->r << endl;
-        if (active_node->l + (deb_r - deb_l) <= active_node->r) {
-            pos = (deb_r - deb_l);
-            deb_l = active_node->l + pos;
-            return;
-        } else {
-            auto it = active_node->next.find(s[deb_l]);
-            if (it != active_node->next.end()) {
-                active_node = it->second;
-                deb_l = active_node->l;
+            char current_char = s[active_edge];
+            if (!active_node->next.count(current_char)) {
+                // Если ребро не существует, создаем новое
+                Node* leaf = new Node(pos, size);
+                active_node->next[current_char] = leaf;
+
+                if (last_new_node) {
+                    last_new_node->link = active_node;
+                    last_new_node = nullptr;
+                }
             } else {
-                return; // Если перехода нет, завершаем выполнение
+                Node* next = active_node->next[current_char];
+                if (walk_down(next)) continue;
+
+                if (s[next->l + active_length] == c) {
+                    active_length++;
+                    if (last_new_node) {
+                        last_new_node->link = active_node;
+                        last_new_node = nullptr;
+                    }
+                    break;
+                }
+
+                Node* split = new Node(next->l, next->l + active_length);
+                active_node->next[current_char] = split;
+                Node* leaf = new Node(pos, size);
+                split->next[c] = leaf;
+                next->l += active_length;
+                split->next[s[next->l]] = next;
+
+                if (last_new_node) last_new_node->link = split;
+                last_new_node = split;
+            }
+
+            remainder--;
+            if (active_node == root && active_length > 0) {
+                active_length--;
+                active_edge = pos - remainder + 1;
+            } else {
+                active_node = (active_node->link ? active_node->link : root);
             }
         }
     }
-}
 
-void split(char c) {
-    if (remainder == 0) { 
-        from_node = nullptr; 
-        return; 
-    }
-
-    active_node->r = active_node->l + pos;
-
-    // Создаем узел для старой ветки
-    node* tmp_node1 = new node(active_node->l + pos, end - 1);
-    add_node(active_node, tmp_node1, s[active_node->l + pos]);
-
-    // Создаем узел для нового символа
-    node* tmp_node2 = new node(end - 1, end - 1);
-    add_node(active_node, tmp_node2, true_c);
-
-    remainder--; // Уменьшаем количество оставшихся суффиксов
-    
-    deb_l = active_node->l + 1;
-    deb_r = active_node->r;
-
-    if (from_node != nullptr) {
-        from_node->link = tmp_node2->par;
-    }
-    from_node = tmp_node2->par;
-
-    active_node = active_node->par;
-
-    if (active_node->link != nullptr) {
-        active_node = active_node->link;
-    }
-
-    auto it = active_node->next.find(s[deb_l]);
-    if (it != active_node->next.end()) {
-        active_node = it->second;
-        deb_l = active_node->l;
-    } else {
-        return; // Если перехода нет, выходим
-    }
-
-    go();
-    pos--; // Корректируем pos для следующей итерации
-    split(s[active_node->l + (deb_r - deb_l)]);
-}
-
-void add(char c) {
-    s += c;
-    end++;
-    if (remainder) {
-        if (active_node->get(c) == 1) {
-            remainder++;
-            pos++;
-            active_node = active_node->next[c];
+    bool walk_down(Node* next) {
+        if (active_length >= next->length(pos)) {
+            active_edge += next->length(pos);
+            active_length -= next->length(pos);
+            active_node = next;
+            return true;
         }
-        else if (s[active_node->l + pos] == c) {
-            pos++;
-            remainder++;
-        } else {
-            true_c = c;
-            split(c);
-            node* tmp_node = new node(end - 1, end - 1);
-            add_node(root, tmp_node, c);
-            pos = 0;
-            // active_node = root;
-        }
-    } else {
-        if (root->get(c) == 1) {
-            remainder++;
-            pos++;
-            active_node = root->next[c];
-        } else {
-            node* tmp_node = new node(end - 1, end - 1);
-            add_node(root, tmp_node, c);
-        }
+        return false;
     }
-}
 
-
-    // Функция для печати дерева
-    void print(node* n, int depth = 0) {
-        if (n == nullptr) return; // Проверка на nullptr
-
-        // Определяем, является ли узел листом
-        bool is_leaf = n->next.empty();
-
-        // Формируем строку для вывода
-        string info;
-        string substring;
-        if (is_leaf) {
-            info = "l=" + to_string(n->l) + ", end=" + to_string(end);
-            substring = s.substr(n->l, end - n->l); // Срез от l до end
-        } else {
-            info = "l=" + to_string(n->l) + ", r=" + to_string(n->r);
-            substring = s.substr(n->l, n->r - n->l); // Срез от l до r
-        }
-
-        // Вывод информации о текущем узле
-        cout << string(depth * 2, ' ') << "Node: " << info << ", \""<< substring
-            // << "\", link=" << n->link << endl;
-            << "\", link=" << n->link << "  адрес: " << n << endl;
-
-        // Рекурсивный вызов для всех дочерних узлов
-        for (auto& child : n->next) {
-            print(child.second, depth + 1); // Используем child.second для получения указателя на узел
+    void build(const string& text) {
+        s = "";
+        size = text.size();
+        for (char c : text) {
+            add_char(c);
         }
     }
 
+    void print(Node* node, int depth = 0) {
+        if (node == nullptr) return;
 
-    // Вспомогательная функция для начала печати с корня
+        for (auto& p : node->next) {
+            cout << string(depth * 2, ' ') << "[" << s.substr(p.second->l, p.second->length(pos)) << "]\n";
+            print(p.second, depth + 1);
+        }
+    }
+
     void print() {
-        cout << "Tree structure:" << endl;
-        print(root); // Начинаем с корня
+        print(root);
     }
+
+    // int search(const string& pattern) {
+    //     Node* current = root;
+    //     int i = 0; // Индекс в строке `pattern`
+    //     int length = pattern.length();
+    //     int matched = 0;
+
+    //     while (i < length) {
+    //         auto it = current->next.find(pattern[i]);
+    //         if (it == current->next.end()) break; // Перехода нет, строка не найдена
+
+    //         Node* next = it->second;
+    //         int edge_len = next->length(pos);
+
+    //         for (int j = 0; j < edge_len && i < length; ++j) {
+    //             if (s[next->l + j] != pattern[i]) return matched; // Несовпадение символа
+    //             i++;
+    //             matched++;
+    //         }
+
+    //         current = next;
+    //     }
+
+    //     return matched; // Возвращаем количество совпавших символов
+    // }
+
+    struct SearchResult {
+        SuffixTree::Node* node; // Найденная вершина
+        int pos;                // Позиция на ребре относительно узла
+    };
+
+    SearchResult search(Node* current, const string& pattern) {
+        if (current == nullptr) current = root;
+        Node* next = nullptr;
+        int i = 0; // Индекс в строке `pattern`
+        int length = pattern.length();
+
+        while (i < length) {
+            auto it = current->next.find(pattern[i]);
+            if (it == current->next.end()) {
+                return {current, 0}; // Перехода нет, возвращаем текущий узел
+            }
+
+            Node* next = it->second;
+            int edge_len = next->length(pos);
+
+            for (int j = 0; j < edge_len && i < length; ++j) {
+                if (s[next->l + j] != pattern[i]) {
+                    return {current, j}; // Несовпадение, возвращаем текущий узел и позицию
+                }
+                i++;
+            }
+
+            current = next;
+        }
+
+        return {current, next->length(pos)}; // Полное совпадение, возвращаем конечный узел
+    }
+
+
+    
+    // match statistic
+    vector<int> ms_build(string& text){
+        vector<int> ms(text.length());
+        Node* current = root;
+        int index = 0;
+        while (index < text.length()){
+
+        }
+    }
+
 };
 
 int main() {
-    // ABCDYFABC$
-    ST st;
-    string text = "abcabxabcd";
-    for (auto _ : text) {
-        st.add(_);
+    string str1, str2;
+    getline(std::cin, str1);
+    getline(std::cin, str2);
+    
+    string text, pattern;
+
+    // Определение большей и меньшей строки
+    if (str1.length() >= str2.length()) {
+        text = str1;
+        pattern = str2;
+    } else {
+        text = str2;
+        pattern = str1;
     }
 
-    cout << st.active_node << '\n';
-    cout << st.remainder << '\n';
-    cout << st.pos << '\n';
 
-    // Печать дерева
+
+    // string text = "abcabxabcd";
+    SuffixTree st;
+    st.build(pattern);
+
+    cout << "Suffix Tree Structure:\n";
     st.print();
 
     return 0;
