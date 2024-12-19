@@ -62,7 +62,7 @@ vec3 computeFog(const vec3& color, float distance, float fogDensity) {
 }
 
 // Добавление объёмного рассеяния и поглощения света
-vec3 computeVolumetricLighting(const Ray& ray, const vec3& hitPoint, const vec3& lightPos, float fogDensity) {
+vec3 computeVolumetricLighting(const Ray& ray, const vec3& hitPoint, const vec3& lightPos, float fogDensity, const vec3& volumetricColor) {
     float totalDistance = length(hitPoint - ray.origin);  // Расстояние, пройденное лучом
     float scattering = exp(-fogDensity * totalDistance);  // Моделирование рассеяния
     float absorption = exp(-fogDensity * totalDistance);  // Моделирование поглощения
@@ -71,7 +71,7 @@ vec3 computeVolumetricLighting(const Ray& ray, const vec3& hitPoint, const vec3&
     float diff = max(dot(lightDir, normalize(hitPoint - ray.origin)), 0.0f);
     
     // Смешиваем рассеянный и поглощённый свет с яркостью, умножив на цвет источника света
-    return scattering * absorption * diff * vec3(1.0f); // Умножаем на цвет света (vec3)
+    return scattering * absorption * diff * volumetricColor; // Умножаем на цвет света (volumetricColor)
 }
 
 // Функция для проверки, находится ли точка в тени
@@ -99,7 +99,7 @@ bool isInShadow(const vec3& hitPoint, const Light& light, const Sphere& sphere1,
 }
 
 // Обновленная функция для вычисления освещенности
-vec3 computeLighting(const vec3& hitPoint, const vec3& normal, const Light& light, bool inShadow, float distance, float fogDensity) {
+vec3 computeLighting(const Ray& ray, const vec3& hitPoint, const vec3& normal, const Light& light, bool inShadow, float distance, float fogDensity, const vec3& volumetricColor) {
     vec3 lightDir = normalize(light.position - hitPoint);
     float diff = max(dot(normal, lightDir), 0.0f);
     
@@ -109,11 +109,11 @@ vec3 computeLighting(const vec3& hitPoint, const vec3& normal, const Light& ligh
 
     // Моделирование тумана
     float fogFactor = exp(-fogDensity * distance);
-    return mix(vec3(0.5f, 0.5f, 0.5f), lightEffect, fogFactor);
+    return mix(vec3(0.5f, 0.5f, 0.5f), lightEffect, fogFactor) + computeVolumetricLighting(ray, hitPoint, light.position, fogDensity, volumetricColor);
 }
 
 // Обновленная функция трассировки луча с учетом теней
-vec3 traceRay(const Ray& ray, const Sphere& sphere1, const Sphere& sphere2, const Plane& plane, const Light& light, float fogDensity) {
+vec3 traceRay(const Ray& ray, const Sphere& sphere1, const Sphere& sphere2, const Plane& plane, const Light& light, float fogDensity, const vec3& volumetricColor) {
     float tSphere1 = intersectSphere(ray, sphere1);
     float tSphere2 = intersectSphere(ray, sphere2);
     float tPlane = intersectPlane(ray, plane);
@@ -125,7 +125,7 @@ vec3 traceRay(const Ray& ray, const Sphere& sphere1, const Sphere& sphere2, cons
         vec3 hitPoint = ray.origin + tSphere1 * ray.direction;
         vec3 normal = normalize(hitPoint - sphere1.center);
         bool inShadow = isInShadow(hitPoint, light, sphere1, sphere2, plane);
-        hitColor = computeLighting(hitPoint, normal, light, inShadow, tSphere1, fogDensity);
+        hitColor = computeLighting(ray, hitPoint, normal, light, inShadow, tSphere1, fogDensity, volumetricColor);
         t = tSphere1;
     }
 
@@ -133,7 +133,7 @@ vec3 traceRay(const Ray& ray, const Sphere& sphere1, const Sphere& sphere2, cons
         vec3 hitPoint = ray.origin + tSphere2 * ray.direction;
         vec3 normal = normalize(hitPoint - sphere2.center);
         bool inShadow = isInShadow(hitPoint, light, sphere1, sphere2, plane);
-        hitColor = computeLighting(hitPoint, normal, light, inShadow, tSphere2, fogDensity);
+        hitColor = computeLighting(ray, hitPoint, normal, light, inShadow, tSphere2, fogDensity, volumetricColor);
         t = tSphere2;
     }
 
@@ -141,22 +141,19 @@ vec3 traceRay(const Ray& ray, const Sphere& sphere1, const Sphere& sphere2, cons
         vec3 hitPoint = ray.origin + tPlane * ray.direction;
         vec3 normal = plane.normal;
         bool inShadow = isInShadow(hitPoint, light, sphere1, sphere2, plane);
-        hitColor = computeLighting(hitPoint, normal, light, inShadow, tPlane, fogDensity);
+        hitColor = computeLighting(ray, hitPoint, normal, light, inShadow, tPlane, fogDensity, volumetricColor);
         t = tPlane;
     }
 
     if (t > 0) {
-        // Включение объёмного освещения (рассеяния и поглощения света)
-        vec3 volumetricColor = computeVolumetricLighting(ray, ray.origin + t * ray.direction, light.position, fogDensity);
-        return computeFog(hitColor + volumetricColor, t, fogDensity);  // Добавление тумана
+        return computeFog(hitColor, t, fogDensity);  // Добавление тумана
     }
 
     return vec3(0.0f); // Цвет фона
 }
 
-
 // Функция рендеринга сцены
-void renderScene(const Sphere& sphere1, const Sphere& sphere2, const Plane& plane, const Light& light, float fogDensity) {
+void renderScene(const Sphere& sphere1, const Sphere& sphere2, const Plane& plane, const Light& light, float fogDensity, const vec3& volumetricColor) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     glBegin(GL_POINTS);
@@ -166,7 +163,7 @@ void renderScene(const Sphere& sphere1, const Sphere& sphere2, const Plane& plan
             float v = (float(y) / HEIGHT) * 2.0f - 1.0f;
             vec3 rayDir = normalize(vec3(u, v, -1.0f));
             Ray ray = { vec3(0.0f, 0.0f, 0.0f), rayDir };
-            vec3 color = traceRay(ray, sphere1, sphere2, plane, light, fogDensity);
+            vec3 color = traceRay(ray, sphere1, sphere2, plane, light, fogDensity, volumetricColor);
 
             glColor3f(color.r, color.g, color.b);
             glVertex2f(u, v);
@@ -198,9 +195,17 @@ int main() {
     Plane plane = { vec3(0.0f, -1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f) };
     Light light = { vec3(5.0f, 5.0f, -3.0f), vec3(1.0f, 1.0f, 1.0f) };
     float fogDensity = 0.5f;
+    vec3 volumetricColor = vec3(1.0f, 1.0f, 1.0f);  // Начальный цвет объёмного света
 
     while (!glfwWindowShouldClose(window)) {
-        renderScene(sphere1, sphere2, plane, light, fogDensity);
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            fogDensity += 0.1f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            fogDensity -= 0.1f;
+        }
+
+        renderScene(sphere1, sphere2, plane, light, fogDensity, volumetricColor);
         glfwPollEvents();
     }
 
