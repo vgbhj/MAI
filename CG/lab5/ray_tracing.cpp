@@ -6,21 +6,17 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 
 using namespace glm;
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
-const float MAX_REFLECTION_DEPTH = 3;
 
 struct Ray {
     vec3 origin;
     vec3 direction;
-
-    // Конструктор, который инициализирует обе переменные
-    Ray(const vec3& orig, const vec3& dir) : origin(orig), direction(dir) {}
 };
-
 
 struct Sphere {
     vec3 center;
@@ -37,6 +33,7 @@ struct Light {
     vec3 color;
 };
 
+// Функция пересечения луча и сферы
 float intersectSphere(const Ray& ray, const Sphere& sphere) {
     vec3 oc = ray.origin - sphere.center;
     float a = dot(ray.direction, ray.direction);
@@ -48,6 +45,7 @@ float intersectSphere(const Ray& ray, const Sphere& sphere) {
     return (-b - sqrt(discriminant)) / (2.0f * a);
 }
 
+// Функция пересечения луча и плоскости
 float intersectPlane(const Ray& ray, const Plane& plane) {
     float denom = dot(plane.normal, ray.direction);
     if (abs(denom) > 1e-6) {
@@ -57,96 +55,107 @@ float intersectPlane(const Ray& ray, const Plane& plane) {
     return -1.0f;
 }
 
+// Функция для вычисления эффекта тумана
 vec3 computeFog(const vec3& color, float distance, float fogDensity) {
-    float fogFactor = exp(-fogDensity * distance);
-    return mix(vec3(0.5f, 0.5f, 0.5f), color, fogFactor);
+    float fogFactor = exp(-fogDensity * distance);  // Коэффициент тумана
+    return mix(vec3(0.5f, 0.5f, 0.5f), color, fogFactor);  // Переход от фона к цвету
 }
 
-bool isInShadow(const Ray& ray, const Sphere& sphere1, const Sphere& sphere2, const Plane& plane, const Light& light) {
-    // Тень проверяется через просылку луча от точки пересечения к источнику света
-    float tSphere1 = intersectSphere(ray, sphere1);
-    float tSphere2 = intersectSphere(ray, sphere2);
-    float tPlane = intersectPlane(ray, plane);
+// Добавление объёмного рассеяния и поглощения света
+vec3 computeVolumetricLighting(const Ray& ray, const vec3& hitPoint, const vec3& lightPos, float fogDensity) {
+    float totalDistance = length(hitPoint - ray.origin);  // Расстояние, пройденное лучом
+    float scattering = exp(-fogDensity * totalDistance);  // Моделирование рассеяния
+    float absorption = exp(-fogDensity * totalDistance);  // Моделирование поглощения
 
-    // Если пересечение найдено до источника света, то объект в тени
-    if (tSphere1 > 0 || tSphere2 > 0 || tPlane > 0) {
-        return true; // Тень
+    vec3 lightDir = normalize(lightPos - hitPoint);
+    float diff = max(dot(lightDir, normalize(hitPoint - ray.origin)), 0.0f);
+    
+    // Смешиваем рассеянный и поглощённый свет с яркостью, умножив на цвет источника света
+    return scattering * absorption * diff * vec3(1.0f); // Умножаем на цвет света (vec3)
+}
+
+// Функция для проверки, находится ли точка в тени
+bool isInShadow(const vec3& hitPoint, const Light& light, const Sphere& sphere1, const Sphere& sphere2, const Plane& plane) {
+    const int numSamples = 16;  // Число сэмплов для мягкой тени
+    float shadowFactor = 0.0f;
+
+    // Генерация случайных направлений для каждого сэмпла
+    for (int i = 0; i < numSamples; ++i) {
+        vec3 randomOffset = vec3((rand() % 1000) / 1000.0f, (rand() % 1000) / 1000.0f, (rand() % 1000) / 1000.0f);
+        Ray shadowRay = { hitPoint, normalize(light.position + randomOffset - hitPoint) };
+        
+        // Проверка пересечений для каждого сэмпла
+        float tSphere1 = intersectSphere(shadowRay, sphere1);
+        float tSphere2 = intersectSphere(shadowRay, sphere2);
+        float tPlane = intersectPlane(shadowRay, plane);
+
+        if (tSphere1 > 0 || tSphere2 > 0 || tPlane > 0) {
+            shadowFactor += 1.0f;
+        }
     }
 
-    return false; // Нет тени
+    shadowFactor /= numSamples;
+    return shadowFactor > 0.5f;  // В зависимости от порога определяем, в тени ли точка
 }
 
-vec3 reflect(const vec3& I, const vec3& N) {
-    return I - 2.0f * dot(I, N) * N; // Формула отражения
+// Обновленная функция для вычисления освещенности
+vec3 computeLighting(const vec3& hitPoint, const vec3& normal, const Light& light, bool inShadow, float distance, float fogDensity) {
+    vec3 lightDir = normalize(light.position - hitPoint);
+    float diff = max(dot(normal, lightDir), 0.0f);
+    
+    // Учитываем мягкость тени
+    vec3 shadowEffect = inShadow ? vec3(0.1f) : vec3(1.0f);
+    vec3 lightEffect = diff * light.color * shadowEffect;
+
+    // Моделирование тумана
+    float fogFactor = exp(-fogDensity * distance);
+    return mix(vec3(0.5f, 0.5f, 0.5f), lightEffect, fogFactor);
 }
 
-vec3 traceRay(const Ray& ray, const Sphere& sphere1, const Sphere& sphere2, const Plane& plane, const Light& light, float fogDensity, int depth) {
-    if (depth > MAX_REFLECTION_DEPTH) return vec3(0.0f); // Ограничение глубины отражений
-
+// Обновленная функция трассировки луча с учетом теней
+vec3 traceRay(const Ray& ray, const Sphere& sphere1, const Sphere& sphere2, const Plane& plane, const Light& light, float fogDensity) {
     float tSphere1 = intersectSphere(ray, sphere1);
     float tSphere2 = intersectSphere(ray, sphere2);
     float tPlane = intersectPlane(ray, plane);
 
     float t = tSphere1;
     vec3 hitColor = vec3(0.0f);
-    vec3 hitNormal;
-    vec3 hitPoint;
 
     if (tSphere1 > 0 && (tSphere1 < t || t < 0)) {
-        hitPoint = ray.origin + tSphere1 * ray.direction;
-        hitNormal = normalize(hitPoint - sphere1.center);
-        vec3 lightDir = normalize(light.position - hitPoint);
-
-        // Диффузное освещение
-        float diff = max(dot(hitNormal, lightDir), 0.0f);
-        hitColor = diff * light.color;
-
+        vec3 hitPoint = ray.origin + tSphere1 * ray.direction;
+        vec3 normal = normalize(hitPoint - sphere1.center);
+        bool inShadow = isInShadow(hitPoint, light, sphere1, sphere2, plane);
+        hitColor = computeLighting(hitPoint, normal, light, inShadow, tSphere1, fogDensity);
         t = tSphere1;
     }
 
     if (tSphere2 > 0 && (tSphere2 < t || t < 0)) {
-        hitPoint = ray.origin + tSphere2 * ray.direction;
-        hitNormal = normalize(hitPoint - sphere2.center);
-        vec3 lightDir = normalize(light.position - hitPoint);
-
-        // Диффузное освещение
-        float diff = max(dot(hitNormal, lightDir), 0.0f);
-        hitColor = diff * light.color;
-
+        vec3 hitPoint = ray.origin + tSphere2 * ray.direction;
+        vec3 normal = normalize(hitPoint - sphere2.center);
+        bool inShadow = isInShadow(hitPoint, light, sphere1, sphere2, plane);
+        hitColor = computeLighting(hitPoint, normal, light, inShadow, tSphere2, fogDensity);
         t = tSphere2;
     }
 
     if (tPlane > 0 && (tPlane < t || t < 0)) {
-        hitPoint = ray.origin + tPlane * ray.direction;
-        hitNormal = plane.normal;
-        vec3 lightDir = normalize(light.position - hitPoint);
-
-        // Диффузное освещение
-        float diff = max(dot(hitNormal, lightDir), 0.0f);
-        hitColor = diff * light.color;
-
+        vec3 hitPoint = ray.origin + tPlane * ray.direction;
+        vec3 normal = plane.normal;
+        bool inShadow = isInShadow(hitPoint, light, sphere1, sphere2, plane);
+        hitColor = computeLighting(hitPoint, normal, light, inShadow, tPlane, fogDensity);
         t = tPlane;
     }
 
     if (t > 0) {
-        // Проверка на тень
-        if (isInShadow(Ray(hitPoint, light.position - hitPoint), sphere1, sphere2, plane, light)) {
-            hitColor *= 0.2f; // Уменьшаем интенсивность света для объекта в тени
-        }
-
-        // Отражение
-        vec3 reflectedDir = reflect(ray.direction, hitNormal);
-        Ray reflectedRay = { hitPoint + 0.001f * hitNormal, reflectedDir };
-        vec3 reflectedColor = traceRay(reflectedRay, sphere1, sphere2, plane, light, fogDensity, depth + 1);
-        hitColor = mix(hitColor, reflectedColor, 0.5f); // Смешиваем отражение с основным цветом
-
-        return computeFog(hitColor, t, fogDensity);
+        // Включение объёмного освещения (рассеяния и поглощения света)
+        vec3 volumetricColor = computeVolumetricLighting(ray, ray.origin + t * ray.direction, light.position, fogDensity);
+        return computeFog(hitColor + volumetricColor, t, fogDensity);  // Добавление тумана
     }
 
-    return vec3(0.0f); // Фон
+    return vec3(0.0f); // Цвет фона
 }
 
 
+// Функция рендеринга сцены
 void renderScene(const Sphere& sphere1, const Sphere& sphere2, const Plane& plane, const Light& light, float fogDensity) {
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -157,7 +166,7 @@ void renderScene(const Sphere& sphere1, const Sphere& sphere2, const Plane& plan
             float v = (float(y) / HEIGHT) * 2.0f - 1.0f;
             vec3 rayDir = normalize(vec3(u, v, -1.0f));
             Ray ray = { vec3(0.0f, 0.0f, 0.0f), rayDir };
-            vec3 color = traceRay(ray, sphere1, sphere2, plane, light, fogDensity, 0);
+            vec3 color = traceRay(ray, sphere1, sphere2, plane, light, fogDensity);
 
             glColor3f(color.r, color.g, color.b);
             glVertex2f(u, v);
@@ -174,29 +183,27 @@ int main() {
         return -1;
     }
 
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Ray Tracing with Reflections, Shadows, and Lighting", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Ray Tracing with Shadows", NULL, NULL);
     if (!window) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
+        std::cerr << "Failed to create GLFW window" << std::endl;
         return -1;
     }
 
     glfwMakeContextCurrent(window);
     glewInit();
 
-    Sphere sphere1 = { vec3(-0.5f, 0.0f, -3.0f), 0.5f };
-    Sphere sphere2 = { vec3(0.5f, 0.0f, -3.0f), 0.5f };
-    Plane plane = { vec3(0.0f, -0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f) };
-    Light light = { vec3(1.0f, 1.0f, -2.0f), vec3(1.0f, 1.0f, 1.0f) };
-
-    float fogDensity = 0.1f;
+    Sphere sphere1 = { vec3(0.0f, 0.0f, -3.0f), 1.0f };
+    Sphere sphere2 = { vec3(2.0f, 0.0f, -4.0f), 1.0f };
+    Plane plane = { vec3(0.0f, -1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f) };
+    Light light = { vec3(5.0f, 5.0f, -3.0f), vec3(1.0f, 1.0f, 1.0f) };
+    float fogDensity = 0.5f;
 
     while (!glfwWindowShouldClose(window)) {
         renderScene(sphere1, sphere2, plane, light, fogDensity);
         glfwPollEvents();
     }
 
-    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
