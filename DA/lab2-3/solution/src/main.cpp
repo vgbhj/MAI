@@ -3,55 +3,87 @@
 
 using namespace std;
 
-int main() {
-    // ios::sync_with_stdio(false);
-    // cin.tie(0);
+class Dictionary {
     RBTree tree;
-    string command, key, path, answer;
-    ull value;
-    while (cin >> command) {
-        try {
-            if (command == "+") {
-                cin >> key >> value;
-                key = tree.toLower(key);
-                answer = tree.insertValue(key, value);
-                cout << answer;
-            } else if (command == "-") {
-                cin >> key;
-                key = tree.toLower(key);
-                answer = tree.deleteValue(key);
-                cout << answer;
-            } else if (command == "!") {
-                cin >> command;
-                if (command == "Save") {
-                    cin >> path;
-                    ofstream file;
-                    file.open(path, ios_base::binary);
-                    if (!file) throw runtime_error("Unable to open file for writing");
-                    tree.saveFile(file, tree.root);
-                    cout << "OK\n";
-                    size_t i = -1;
-                    file.write((char *)&i, sizeof(size_t));
-                    file.close();
-                } else if (command == "Load") {
-                    cin >> path;
-                    ifstream file;
-                    file.open(path, ios_base::binary);
-                    if (!file) throw runtime_error("Unable to open file for reading");
-                    tree.loadFile(file);
-                    file.close();
-                }
-            } else {
-                key = tree.toLower(command);
-                tree.get(key);
+public:
+    void processCommand(const string& command) {
+        if (command.rfind("+", 0) == 0) {
+            size_t spacePos = command.find(' ', 2);
+            if (spacePos == string::npos) {
+                cerr << "Invalid command format" << endl;
+                return;
             }
-        } catch (const bad_alloc &) {
-            cout << "ERROR: Not enough memory\n";
-        } catch (const runtime_error &e) {
-            cout << "ERROR: " << e.what() << '\n';
-        } catch (...) {
-            cout << "ERROR: n";
+            string word = command.substr(2, spacePos - 2);
+            string valueStr = command.substr(spacePos + 1);
+            try {
+                unsigned long long value = stoull(valueStr);
+                if (tree.searchBool(word) != false) {
+                    cout << "Exist" << endl;
+                } else {
+                    tree.insertValue(word, value);
+                    cout << "OK" << endl;
+                }
+            } catch (const invalid_argument& e) {
+                cerr << "Invalid number format: " << valueStr << endl;
+            } catch (const out_of_range& e) {
+                cerr << "Number out of range: " << valueStr << endl;
+            }
+        } else if (command.rfind("-", 0) == 0) {
+            string word = command.substr(2);
+            cout << word + " " << (tree.searchBool(word)) << '\n';
+            if (tree.searchBool(word) == false) {
+                cout << "NoSuchWord" << endl;
+            } else {
+                tree.deleteValue(word);
+                cout << "OK" << endl;
+            }
+        } else if (command.rfind("!", 0) == 0) {
+            size_t spacePos = command.find(' ', 2);
+            // if (spacePos == string::npos) {
+            //     cerr << "Invalid command format" << endl;
+            //     return;
+            // }
+            // string action = command.substr(2, spacePos - 2);
+            // string path = command.substr(spacePos + 1);
+            // if (action == "Save") {
+            //     tree.saveToFile(path);
+            //     cout << "OK" << endl;
+            // } else if (action == "Load") {
+            //     tree.loadFromFile(path);
+            //     cout << "OK" << endl;
+            // } else {
+            //     cerr << "Invalid action: " << action << endl;
+            // }
+        } else {
+            string word = command;
+            unsigned long long value = tree.search(word);
+            bool flag = tree.searchBool(word);
+            if (flag == false) {
+                cout << "NoSuchWord" << endl;
+            } else {
+                cout << "OK: " << value << endl;
+            }
         }
     }
+};
+
+
+int main() {
+    RBTree tree;
+    tree.insertValue("a", 1);
+    tree.insertValue("aa", 1);
+    tree.insertValue("aaa", 1);
+
+    tree.deleteValue("a");
+
+    // после удаление аа, затирается ааа!
+    tree.deleteValue("aa");
+    tree.deleteValue("aaa");
+    // tree.preorder();
+    // Dictionary dict;
+    // string line;
+    // while (getline(cin, line)) {
+    //     dict.processCommand(line);
+    // }
     return 0;
 }
