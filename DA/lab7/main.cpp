@@ -37,7 +37,7 @@ int main() {
             dp[i][j] = dp[i - 1][j];
             if (j - m [i - 1] >= 0){
                 int tmp_k = dp[i - 1][j - m[i-1]].second + 1;
-                if ((dp[i - 1][j - m[i-1]].first + c[i-1] ) * tmp_k > dp[i][j].first){
+                if ((dp[i - 1][j - m[i-1]].first + c[i-1] ) * tmp_k > dp[i][j].first * dp[i][j].second){
                     dp[i][j].first = (dp[i - 1][j - m[i-1]].first + c[i-1] ) * tmp_k ;
                     dp[i][j].second = tmp_k;
                 }
