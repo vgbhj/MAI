@@ -8,10 +8,6 @@ struct Node {
     int f, x, y;
 
     Node(int f, int x, int y) : f(f), x(x), y(y) {}
-
-    bool operator<(const Node& other) const {
-        return f > other.f;
-    }
 };
 
 int heuristic(int x1, int y1, int x2, int y2) {
@@ -19,23 +15,27 @@ int heuristic(int x1, int y1, int x2, int y2) {
 }
 
 int a_star(const vector<vector<char>>& grid, pii start, pii goal, int n, int m) {
-    priority_queue<Node> open_set;
+    deque<Node> open_set;
     vector<vector<int>> g_score(n, vector<int>(m, INT_MAX));
+    vector<vector<bool>> visited(n, vector<bool>(m, false));
 
     g_score[start.first][start.second] = 0;
-    open_set.emplace(0, start.first, start.second);
+    open_set.emplace_back(0, start.first, start.second);
 
     vector<pii> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
     while (!open_set.empty()) {
-        Node current = open_set.top();
-        open_set.pop();
+        Node current = open_set.front();
+        open_set.pop_front();
 
         int x = current.x, y = current.y;
 
         if (x == goal.first && y == goal.second) {
             return g_score[x][y];
         }
+
+        if (visited[x][y]) continue;
+        visited[x][y] = true;
 
         for (auto [dx, dy] : directions) {
             int new_x = x + dx, new_y = y + dy;
@@ -45,7 +45,12 @@ int a_star(const vector<vector<char>>& grid, pii start, pii goal, int n, int m) 
                 if (tentative_g < g_score[new_x][new_y]) {
                     g_score[new_x][new_y] = tentative_g;
                     int f = tentative_g + heuristic(new_x, new_y, goal.first, goal.second);
-                    open_set.emplace(f, new_x, new_y);
+
+                    if (f == current.f) {
+                        open_set.emplace_front(f, new_x, new_y); // В начало
+                    } else {
+                        open_set.emplace_back(f, new_x, new_y); // В конец
+                    }
                 }
             }
         }
@@ -83,4 +88,3 @@ int main() {
 
     return 0;
 }
-

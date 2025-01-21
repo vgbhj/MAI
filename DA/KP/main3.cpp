@@ -18,7 +18,7 @@ int heuristic(int x1, int y1, int x2, int y2) {
     return abs(x1 - x2) + abs(y1 - y2);
 }
 
-int a_star(const vector<string>& grid, pii start, pii goal, int n, int m) {
+int a_star(const vector<vector<char>>& grid, pii start, pii goal, int n, int m) {
     priority_queue<Node> open_set;
     vector<vector<int>> g_score(n, vector<int>(m, INT_MAX));
 
@@ -62,9 +62,11 @@ int main() {
     int n, m;
     cin >> n >> m;
 
-    vector<string> grid(n);
+    vector<vector<char>> grid(n, vector<char>(m));
     for (int i = 0; i < n; ++i) {
-        cin >> grid[i];
+        for (int j = 0; j < m; ++j) {
+            cin >> grid[i][j];
+        }
     }
 
     int q;
@@ -82,3 +84,4 @@ int main() {
 
     return 0;
 }
+
