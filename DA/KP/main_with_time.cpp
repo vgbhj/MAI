@@ -87,6 +87,9 @@ int main() {
     int q;
     cin >> q;
 
+    long long total_time = 0; 
+    int query_count = 0;
+
     while (q--) {
         int x1, y1, x2, y2;
         cin >> x1 >> y1 >> x2 >> y2;
@@ -103,17 +106,23 @@ int main() {
             continue;
         }
 
-        // Начало замера времени
         auto start_time = chrono::high_resolution_clock::now();
 
         int result = a_star(grid, start, goal, n, m);
 
-        // Конец замера времени
         auto end_time = chrono::high_resolution_clock::now();
         auto elapsed = chrono::duration_cast<chrono::milliseconds>(end_time - start_time);
         cerr << "Время выполнения для запроса: " << elapsed.count() << " миллисекунд.\n";
 
+        total_time += elapsed.count();
+        query_count++;
+
         cout << result << "\n";
+    }
+
+    if (query_count > 0) {
+        double average_time = static_cast<double>(total_time) / query_count;
+        cout << "Среднее время выполнения по всем запросам: " << average_time << " миллисекунд.\n";
     }
 
     return 0;
