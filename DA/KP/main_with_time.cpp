@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#include <chrono>
 
 using namespace std;
 
@@ -17,6 +18,7 @@ struct Node {
 int heuristic(int x1, int y1, int x2, int y2) {
     return abs(x1 - x2) + abs(y1 - y2);
 }
+
 
 int a_star(const vector<vector<char>>& grid, pii start, pii goal, int n, int m) {
     deque<Node> open_set;
@@ -68,7 +70,6 @@ int a_star(const vector<vector<char>>& grid, pii start, pii goal, int n, int m) 
     return -1;
 }
 
-
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(0), cout.tie(0);
@@ -102,8 +103,17 @@ int main() {
             continue;
         }
 
+        // Начало замера времени
+        auto start_time = chrono::high_resolution_clock::now();
 
-        cout << a_star(grid, start, goal, n, m) << "\n";
+        int result = a_star(grid, start, goal, n, m);
+
+        // Конец замера времени
+        auto end_time = chrono::high_resolution_clock::now();
+        auto elapsed = chrono::duration_cast<chrono::milliseconds>(end_time - start_time);
+        cerr << "Время выполнения для запроса: " << elapsed.count() << " миллисекунд.\n";
+
+        cout << result << "\n";
     }
 
     return 0;
