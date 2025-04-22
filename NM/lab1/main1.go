@@ -54,7 +54,6 @@ func LUPDecomposition(A [][]float64) ([][]float64, [][]float64, [][]int, int, er
 			}
 		}
 	}
-
 	// Разделяем L и U
 	L := make([][]float64, n)
 	U := make([][]float64, n)
