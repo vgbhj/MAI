@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"math"
 )
 
@@ -26,20 +25,18 @@ func jacobi(A [][]float64, b []float64, x0 []float64, tol float64, maxIter int) 
 				}
 				sigma += A[i][j] * x[j]
 			}
-			if A[i][i] == 0 {
-				log.Fatalf("Нулевой диагональный элемент A[%d][%d]", i, i)
-			}
 			xNew[i] = (b[i] - sigma) / A[i][i]
 		}
-		// проверяем сходимость в бесконечной норме
-		diff := 0.0
+
+		// Вычисляем евклидову норму разности
+		sumSq := 0.0
 		for i := 0; i < n; i++ {
-			d := math.Abs(xNew[i] - x[i])
-			if d > diff {
-				diff = d
-			}
+			d := xNew[i] - x[i]
+			sumSq += d * d
 		}
+		diff := math.Sqrt(sumSq)
 		copy(x, xNew)
+
 		if diff < tol {
 			return x, k
 		}
@@ -62,32 +59,40 @@ func gaussSeidel(A [][]float64, b []float64, x0 []float64, tol float64, maxIter 
 
 		for i := 0; i < n; i++ {
 			sigma := 0.0
-			// используем уже обновлённые x[0..i-1] и старые xOld[i+1..n-1]
 			for j := 0; j < i; j++ {
 				sigma += A[i][j] * x[j]
 			}
 			for j := i + 1; j < n; j++ {
 				sigma += A[i][j] * xOld[j]
 			}
-			if A[i][i] == 0 {
-				log.Fatalf("Нулевой диагональный элемент A[%d][%d]", i, i)
-			}
 			x[i] = (b[i] - sigma) / A[i][i]
 		}
-
-		// проверяем сходимость
-		diff := 0.0
+		// СДелать как в методичке
+		// Вычисляем евклидову норму разности
+		sumSq := 0.0
 		for i := 0; i < n; i++ {
-			d := math.Abs(x[i] - xOld[i])
-			if d > diff {
-				diff = d
-			}
+			d := x[i] - xOld[i]
+			sumSq += d * d
 		}
+		diff := math.Sqrt(sumSq)
+
 		if diff < tol {
 			return x, k
 		}
 	}
 	return x, maxIter
+}
+
+func checkSolution(A [][]float64, x []float64, b []float64) {
+	fmt.Println("Проверка A * x ≈ b:")
+	for i := 0; i < len(b); i++ {
+		sum := 0.0
+		for j := 0; j < len(x); j++ {
+			sum += A[i][j] * x[j]
+		}
+		fmt.Printf("  строка %d: %.6f ≈ %.6f\n", i+1, sum, b[i])
+	}
+	fmt.Println()
 }
 
 func main() {
@@ -114,7 +119,8 @@ func main() {
 	for i := range xJ {
 		fmt.Printf(" %8.6f", xJ[i])
 	}
-	fmt.Println(" ]\n")
+	fmt.Println(" ]")
+	checkSolution(A, xJ, b)
 
 	fmt.Printf("Метод Зейделя (Gauss–Seidel):\n")
 	fmt.Printf("  кол-во итераций: %d\n", itS)
@@ -123,4 +129,6 @@ func main() {
 		fmt.Printf(" %8.6f", xS[i])
 	}
 	fmt.Println(" ]")
+	checkSolution(A, xS, b)
+
 }

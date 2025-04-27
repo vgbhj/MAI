@@ -9,7 +9,7 @@ import (
 // b[1..n] — главная диагональ,
 // c[1..n-1] — верхняя диагональ (c[n] не используется),
 // d[1..n] — правая часть.
-func thomas(a, b, c, d []float64) []float64 {
+func solve_tridiagonal(a, b, c, d []float64) []float64 {
 	n := len(b) - 1
 	// cPrime и dPrime — вспомогательные векторы длины n+1 (индексация с единицы)
 	cPrime := make([]float64, n+1)
@@ -25,9 +25,6 @@ func thomas(a, b, c, d []float64) []float64 {
 	// Шаг 2: прямой ход
 	for i := 2; i <= n; i++ {
 		znam := b[i] - a[i]*cPrime[i-1]
-		if znam == 0 {
-			log.Fatalf("Деление на ноль на шаге %d прогонки", i)
-		}
 		if i < n {
 			cPrime[i] = c[i] / znam
 		}
@@ -57,10 +54,23 @@ func main() {
 	a[4], b[4], c[4], d[4] = -4, -10, 5, 64
 	a[5], b[5], d[5] = 7, 12, 3
 
-	x := thomas(a, b, c, d)
+	x := solve_tridiagonal(a, b, c, d)
 
 	fmt.Println("Решение:")
 	for i := 1; i <= n; i++ {
 		fmt.Printf("x%d = %.6f\n", i, x[i])
+	}
+
+	// Проверка: A * x ≈ d
+	fmt.Println("\nПроверка (A * x):")
+	for i := 1; i <= n; i++ {
+		Ax := b[i] * x[i]
+		if i > 1 {
+			Ax += a[i] * x[i-1]
+		}
+		if i < n {
+			Ax += c[i] * x[i+1]
+		}
+		fmt.Printf("строка %d: %.6f ≈ %.6f\n", i, Ax, d[i])
 	}
 }

@@ -108,13 +108,10 @@ func luDecomposition(A [][]float64) (P, L, U [][]float64) {
 			for k := 0; k < j; k++ {
 				s += U[k][j] * L[i][k]
 			}
-			if U[j][j] == 0 {
-				log.Fatalf("LU: нулевой элемент U[%d][%d]", j, j)
-			}
 			L[i][j] = (PA[i][j] - s) / U[j][j]
 		}
 	}
-	return
+	return P, L, U
 }
 
 // solveL решает L y = Pb прямой подстановкой
