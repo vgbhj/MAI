@@ -15,29 +15,43 @@ func jacobi(A [][]float64, b []float64, x0 []float64, tol float64, maxIter int) 
 	}
 	xNew := make([]float64, n)
 
+	alpha := make([][]float64, n)
+	normAlpha := 0.0
+	for i := 0; i < n; i++ {
+		alpha[i] = make([]float64, n)
+		rowNorm := 0.0
+		for j := 0; j < n; j++ {
+			if i != j {
+				alpha[i][j] = -A[i][j] / A[i][i]
+				rowNorm += math.Abs(alpha[i][j])
+			}
+		}
+		if rowNorm > normAlpha {
+			normAlpha = rowNorm
+		}
+	}
+
+	factor := normAlpha / (1 - normAlpha)
+
 	for k := 1; k <= maxIter; k++ {
-		// для каждой компоненты
 		for i := 0; i < n; i++ {
 			sigma := 0.0
 			for j := 0; j < n; j++ {
-				if j == i {
-					continue
-				}
-				sigma += A[i][j] * x[j]
+				sigma += alpha[i][j] * x[j]
 			}
-			xNew[i] = (b[i] - sigma) / A[i][i]
+			xNew[i] = (b[i] / A[i][i]) + sigma
 		}
 
-		// Вычисляем евклидову норму разности
 		sumSq := 0.0
 		for i := 0; i < n; i++ {
 			d := xNew[i] - x[i]
 			sumSq += d * d
 		}
 		diff := math.Sqrt(sumSq)
+		epsilon := factor * diff
 		copy(x, xNew)
 
-		if diff < tol {
+		if epsilon < tol {
 			return x, k
 		}
 	}
@@ -67,8 +81,7 @@ func gaussSeidel(A [][]float64, b []float64, x0 []float64, tol float64, maxIter 
 			}
 			x[i] = (b[i] - sigma) / A[i][i]
 		}
-		// СДелать как в методичке
-		// Вычисляем евклидову норму разности
+
 		sumSq := 0.0
 		for i := 0; i < n; i++ {
 			d := x[i] - xOld[i]

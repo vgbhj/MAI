@@ -146,48 +146,59 @@ func plotError(errors []float64, filename string) {
 	}
 }
 
-// Норма ||UᵀU - I||
-func orthonormalityError(U [][]float64) float64 {
-	n := len(U)
-	err := 0.0
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			dot := 0.0
-			for k := 0; k < n; k++ {
-				dot += U[k][i] * U[k][j]
-			}
-			expected := 0.0
-			if i == j {
-				expected = 1.0
-			}
-			err = math.Max(err, math.Abs(dot-expected))
-		}
-	}
-	return err
-}
-
-// Норма ||UDUᵀ - A||
-func reconstructionError(A, U, D [][]float64) float64 {
+// Проверка Av ≈ λv для всех собственных векторов
+func checkEigen(A, U, D [][]float64, tol float64) {
 	n := len(A)
-	recon := make([][]float64, n)
-	for i := range recon {
-		recon[i] = make([]float64, n)
+	fmt.Println("\nПроверка A*v_i = λ_i*v_i:")
+	for i := 0; i < n; i++ {
+		// Получаем i-й собственный вектор (i-й столбец U)
+		lambda := D[i][i]
+		v := make([]float64, n)
 		for j := 0; j < n; j++ {
-			for k := 0; k < n; k++ {
-				for l := 0; l < n; l++ {
-					recon[i][j] += U[i][k] * D[k][l] * U[j][l]
-				}
+			v[j] = U[j][i]
+		}
+
+		// Вычисляем A*v
+		Av := make([]float64, n)
+		for row := 0; row < n; row++ {
+			for col := 0; col < n; col++ {
+				Av[row] += A[row][col] * v[col]
 			}
 		}
-	}
 
-	err := 0.0
-	for i := 0; i < n; i++ {
+		// Вычисляем λ*v
+		lv := make([]float64, n)
 		for j := 0; j < n; j++ {
-			err = math.Max(err, math.Abs(recon[i][j]-A[i][j]))
+			lv[j] = lambda * v[j]
+		}
+
+		// Сравниваем результаты
+		maxError := 0.0
+		for j := 0; j < n; j++ {
+			err := math.Abs(Av[j] - lv[j])
+			if err > maxError {
+				maxError = err
+			}
+		}
+
+		fmt.Printf("λ_%d = %9.6f\n", i+1, lambda)
+		fmt.Printf("  A*v_%d = [", i+1)
+		for _, val := range Av {
+			fmt.Printf(" %8.6f", val)
+		}
+		fmt.Println(" ]")
+		fmt.Printf("  λ*v_%d = [", i+1)
+		for _, val := range lv {
+			fmt.Printf(" %8.6f", val)
+		}
+		fmt.Println(" ]")
+
+		if maxError < tol {
+			fmt.Printf("Проверка пройдена (макс. ошибка: %.2e)\n\n", maxError)
+		} else {
+			fmt.Printf("Ошибка: максимальная погрешность %.2e превышает допуск\n\n", maxError)
 		}
 	}
-	return err
 }
 
 func main() {
@@ -219,14 +230,8 @@ func main() {
 		fmt.Println(" ]")
 	}
 
-	// Численные проверки
-	fmt.Println("\nПроверка ортонормированности (||UᵀU - I||):")
-	orthErr := orthonormalityError(U)
-	fmt.Printf("  Ошибка ортонормированности: %.3e\n", orthErr)
-
-	fmt.Println("Проверка реконструкции (||UDUᵀ - A||):")
-	reconErr := reconstructionError(A, U, D)
-	fmt.Printf("  Ошибка реконструкции:       %.3e\n", reconErr)
+	fmt.Println("\n=== Проверки ===")
+	checkEigen(A, U, D, eps)
 
 	// Сохраняем и строим график
 	saveCSV(errors, "error.csv")
