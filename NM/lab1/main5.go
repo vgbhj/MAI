@@ -3,122 +3,172 @@ package main
 import (
 	"fmt"
 	"math"
-	"os"
+	"math/cmplx"
 )
 
-// qrDecompose выполняет разложение A = Q·R,
-func qrDecompose(A [][]float64) (Q, R [][]float64) {
-	n := len(A)
-	// инициализируем Q и R
-	Q = make([][]float64, n)
-	R = make([][]float64, n)
-	for i := 0; i < n; i++ {
-		Q[i] = make([]float64, n)
-		R[i] = make([]float64, n)
-	}
+const eps = 1e-6
 
-	// Грам–Шмидт по столбцам
-	for j := 0; j < n; j++ {
-		// v = j‑й столбец A
-		v := make([]float64, n)
-		for i := 0; i < n; i++ {
-			v[i] = A[i][j]
-		}
-		// ортогонализация относительно предыдущих колонок Q
-		for i := 0; i < j; i++ {
-			// R[i][j] = Q[:,i]·A[:,j]
-			dot := 0.0
-			for k := 0; k < n; k++ {
-				dot += Q[k][i] * A[k][j]
-			}
-			R[i][j] = dot
-			// v -= dot * Q[:,i]
-			for k := 0; k < n; k++ {
-				v[k] -= dot * Q[k][i]
-			}
-		}
-		// R[j][j] = ||v||
-		norm := 0.0
-		for k := 0; k < n; k++ {
-			norm += v[k] * v[k]
-		}
-		norm = math.Sqrt(norm)
-		if norm == 0 {
-			fmt.Fprintf(os.Stderr, "qrDecompose: нулевая норма на шаге %d\n", j)
-			os.Exit(1)
-		}
-		R[j][j] = norm
-		// Q[:,j] = v / norm
-		for k := 0; k < n; k++ {
-			Q[k][j] = v[k] / norm
-		}
+func sign(x float64) float64 {
+	if x >= 0 {
+		return 1
 	}
-	return
+	return -1
 }
 
-// offDiagonalNorm возвращает max_{i≠j} |A[i][j]|.
-func offDiagonalNorm(A [][]float64) float64 {
+func norm(vec []float64) float64 {
+	sum := 0.0
+	for _, v := range vec {
+		sum += v * v
+	}
+	return math.Sqrt(sum)
+}
+
+func dot(a, b []float64) float64 {
+	sum := 0.0
+	for i := range a {
+		sum += a[i] * b[i]
+	}
+	return sum
+}
+
+func householderMatrix(A [][]float64, col int) [][]float64 {
 	n := len(A)
-	maxv := 0.0
+	v := make([]float64, n)
+	a := make([]float64, n)
+	for i := range A {
+		a[i] = A[i][col]
+	}
+
+	sigma := sign(a[col]) * norm(a[col:])
+	v[col] = a[col] + sigma
+	for i := col + 1; i < n; i++ {
+		v[i] = a[i]
+	}
+
+	beta := dot(v, v)
+	if beta == 0 {
+		return identityMatrix(n)
+	}
+
+	H := identityMatrix(n)
 	for i := 0; i < n; i++ {
 		for j := 0; j < n; j++ {
-			if i != j {
-				if v := math.Abs(A[i][j]); v > maxv {
-					maxv = v
-				}
-			}
+			H[i][j] -= 2 * v[i] * v[j] / beta
 		}
 	}
-	return maxv
+	return H
 }
 
-// qrEigenvalues находит собственные значения
-func qrEigenvalues(A [][]float64, eps float64, maxIter int) ([]float64, int) {
+func qrDecompose(A [][]float64) ([][]float64, [][]float64) {
 	n := len(A)
-	// делаем глубокую копию A в Ak
-	Ak := make([][]float64, n)
-	for i := range A {
-		Ak[i] = append([]float64(nil), A[i]...)
-	}
+	Q := identityMatrix(n)
+	A_i := copyMatrix(A)
 
-	for k := 1; k <= maxIter; k++ {
-		// проверяем off‑диагональ
-		off := offDiagonalNorm(Ak)
-		fmt.Printf("итерация %3d: off‑diag norm = %.3e\n", k, off)
-		if off < eps {
-			// собственные значения на диагонали
-			vals := make([]float64, n)
-			for i := 0; i < n; i++ {
-				vals[i] = Ak[i][i]
-			}
-			return vals, k
-		}
-		// QR‑разложение
-		Q, R := qrDecompose(Ak)
-		// следующий Ak = R·Q
-		next := make([][]float64, n)
-		for i := 0; i < n; i++ {
-			next[i] = make([]float64, n)
-			for j := 0; j < n; j++ {
-				sum := 0.0
-				for t := 0; t < n; t++ {
-					sum += R[i][t] * Q[t][j]
-				}
-				next[i][j] = sum
-			}
-		}
-		Ak = next
+	for i := 0; i < n-1; i++ {
+		H := householderMatrix(A_i, i)
+		Q = multiplyMatrices(Q, H)
+		A_i = multiplyMatrices(H, A_i)
 	}
-
-	fmt.Fprintln(os.Stderr, "qrEigenvalues: не сошлось за maxIter")
-	// возвращаем диагональ Ak как есть
-	vals := make([]float64, n)
-	for i := 0; i < n; i++ {
-		vals[i] = Ak[i][i]
-	}
-	return vals, maxIter
+	return Q, A_i
 }
 
+func getRoots(A [][]float64, i int) []complex128 {
+	a11 := A[i][i]
+	a12 := A[i][i+1]
+	a21 := A[i+1][i]
+	a22 := A[i+1][i+1]
+
+	tr := a11 + a22
+	det := a11*a22 - a12*a21
+	discriminant := tr*tr - 4*det
+
+	if discriminant >= 0 {
+		sqrtD := math.Sqrt(discriminant)
+		return []complex128{
+			complex((-tr+sqrtD)/2, 0),
+			complex((-tr-sqrtD)/2, 0),
+		}
+	}
+	sqrtD := cmplx.Sqrt(complex(discriminant, 0))
+	return []complex128{
+		(-complex(tr, 0) + sqrtD) / 2,
+		(-complex(tr, 0) - sqrtD) / 2,
+	}
+}
+
+func isComplexBlock(A [][]float64, i int, eps float64) bool {
+	Q, R := qrDecompose(A)
+	A_next := multiplyMatrices(R, Q)
+	roots1 := getRoots(A, i)
+	roots2 := getRoots(A_next, i)
+
+	return cmplx.Abs(roots1[0]-roots2[0]) < eps &&
+		cmplx.Abs(roots1[1]-roots2[1]) < eps
+}
+
+func qrEigenValues(A [][]float64, eps float64) []complex128 {
+	n := len(A)
+	A_i := copyMatrix(A)
+	eigenValues := make([]complex128, 0, n)
+	i := 0
+
+	for i < n {
+		if i == n-1 {
+			eigenValues = append(eigenValues, complex(A_i[i][i], 0))
+			break
+		}
+
+		subNorm := norm([]float64{A_i[i+1][i]})
+		if subNorm < eps {
+			eigenValues = append(eigenValues, complex(A_i[i][i], 0))
+			i++
+		} else {
+			if isComplexBlock(A_i, i, eps) {
+				roots := getRoots(A_i, i)
+				eigenValues = append(eigenValues, roots...)
+				i += 2
+			} else {
+				Q, R := qrDecompose(A_i)
+				A_i = multiplyMatrices(R, Q)
+			}
+		}
+	}
+	return eigenValues
+}
+
+// Вспомогательные функции
+func identityMatrix(n int) [][]float64 {
+	m := make([][]float64, n)
+	for i := range m {
+		m[i] = make([]float64, n)
+		m[i][i] = 1
+	}
+	return m
+}
+
+func copyMatrix(A [][]float64) [][]float64 {
+	m := make([][]float64, len(A))
+	for i := range A {
+		m[i] = append([]float64{}, A[i]...)
+	}
+	return m
+}
+
+func multiplyMatrices(A, B [][]float64) [][]float64 {
+	n := len(A)
+	result := make([][]float64, n)
+	for i := range result {
+		result[i] = make([]float64, n)
+		for j := range result[i] {
+			sum := 0.0
+			for k := 0; k < n; k++ {
+				sum += A[i][k] * B[k][j]
+			}
+			result[i][j] = sum
+		}
+	}
+	return result
+}
 func main() {
 	A := [][]float64{
 		{1, 2, 5},
@@ -126,15 +176,12 @@ func main() {
 		{7, -9, -7},
 	}
 
-	eps := 1e-6
-	maxIter := 100
+	// 	A := [][]float64{
+	//     {9, 0, 2},
+	//     {-6, 4, 4},
+	//     {-2, -7, 5},
+	// }
 
-	fmt.Println("Запускаем QR‑алгоритм без сдвигов для 3×3 матрицы")
-	vals, it := qrEigenvalues(A, eps, maxIter)
-
-	fmt.Printf("\nСобственных итераций: %d\n", it)
-	fmt.Println("Приближённые собственные значения:")
-	for i, λ := range vals {
-		fmt.Printf("  λ%v = %9.6f\n", i+1, λ)
-	}
+	eigenvalues := qrEigenValues(A, eps)
+	fmt.Println("Собственные значения:", eigenvalues)
 }
