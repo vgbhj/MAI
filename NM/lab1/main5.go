@@ -118,8 +118,8 @@ func qrEigenValues(A [][]float64, eps float64) []complex128 {
 			break
 		}
 
-		subNorm := norm([]float64{A_i[i+1][i]})
-		if subNorm < eps {
+		sub := subDiagonal(A_i, i)
+		if sub < eps {
 			eigenValues = append(eigenValues, complex(A_i[i][i], 0))
 			i++
 		} else {
@@ -134,6 +134,14 @@ func qrEigenValues(A [][]float64, eps float64) []complex128 {
 		}
 	}
 	return eigenValues
+}
+
+func subDiagonal(A [][]float64, col int) float64 {
+	sum := 0.0
+	for row := col + 1; row < len(A); row++ {
+		sum += A[row][col] * A[row][col]
+	}
+	return math.Sqrt(sum)
 }
 
 // Вспомогательные функции
@@ -176,11 +184,18 @@ func main() {
 		{7, -9, -7},
 	}
 
-	// 	A := [][]float64{
-	//     {9, 0, 2},
-	//     {-6, 4, 4},
-	//     {-2, -7, 5},
-	// }
+	A = [][]float64{
+		{9, 0, 2},
+		{-6, 4, 4},
+		{-2, -7, 5},
+	}
+
+	A = [][]float64{
+		{1, 2, 3, 1, 0},
+		{6, 5, 4, -8, 9},
+		{7, 0, 5, 0, -3},
+		{1, 2, -4, 6, -6},
+		{0, 1, 9, -3, 1}}
 
 	eigenvalues := qrEigenValues(A, eps)
 	fmt.Println("Собственные значения:", eigenvalues)

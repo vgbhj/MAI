@@ -25,7 +25,7 @@ func isSymmetric(A [][]float64, tol float64) bool {
 	return true
 }
 
-// offNorm возвращает ∞‑норму вектора всех вне­диагональных элементов A
+// offNorm возвращает норму вектора всех вне­диагональных элементов A
 func offNorm(A [][]float64) float64 {
 	n := len(A)
 	maxv := 0.0
