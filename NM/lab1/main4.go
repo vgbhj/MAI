@@ -1,15 +1,14 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
 	"log"
 	"math"
 	"os"
-	"strconv"
 
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
 )
 
@@ -108,22 +107,6 @@ func jacobiEigen(A [][]float64, eps float64, maxIter int) (D, U [][]float64, it 
 	return
 }
 
-func saveCSV(errors []float64, filename string) {
-	file, err := os.Create(filename)
-	if err != nil {
-		log.Fatalf("Ошибка создания CSV: %v", err)
-	}
-	defer file.Close()
-
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
-
-	writer.Write([]string{"iteration", "error"})
-	for i, val := range errors {
-		writer.Write([]string{strconv.Itoa(i + 1), fmt.Sprintf("%e", val)})
-	}
-}
-
 func plotError(errors []float64, filename string) {
 	pts := make(plotter.XYs, len(errors))
 	for i, val := range errors {
@@ -132,16 +115,33 @@ func plotError(errors []float64, filename string) {
 	}
 
 	p := plot.New()
-	p.Title.Text = "Сходимость метода вращений (off-norm)"
+	p.Title.Text = "Сходимость метода вращений Якоби"
 	p.X.Label.Text = "Итерация"
-	p.Y.Label.Text = "Погрешность (off-norm)"
+	p.Y.Label.Text = "Макс. внедиагональный элемент (log)"
+
+	// Оси и стиль
 	p.Y.Scale = plot.LogScale{}
-	p.Y.Min = 1e-9
+	p.Y.Tick.Marker = plot.LogTicks{}
+	p.Add(plotter.NewGrid())
 
-	errLine, _ := plotter.NewLine(pts)
-	p.Add(errLine)
+	line, err := plotter.NewLine(pts)
+	if err != nil {
+		log.Fatalf("Ошибка создания линии графика: %v", err)
+	}
+	line.LineStyle.Width = vg.Points(2)
+	line.LineStyle.Color = plotutil.Color(1)
 
-	if err := p.Save(6*vg.Inch, 4*vg.Inch, filename); err != nil {
+	points, err := plotter.NewScatter(pts)
+	if err != nil {
+		log.Fatalf("Ошибка создания точек графика: %v", err)
+	}
+	points.Shape = plotutil.Shape(1)
+	points.Radius = vg.Points(2)
+	points.Color = plotutil.Color(0)
+
+	p.Add(line, points)
+
+	if err := p.Save(8*vg.Inch, 5*vg.Inch, filename); err != nil {
 		log.Fatalf("Ошибка сохранения графика: %v", err)
 	}
 }
@@ -234,7 +234,5 @@ func main() {
 	checkEigen(A, U, D, eps)
 
 	// Сохраняем и строим график
-	saveCSV(errors, "error.csv")
 	plotError(errors, "error.png")
-	fmt.Println("\nCSV сохранён в error.csv, график — в error.png")
 }
