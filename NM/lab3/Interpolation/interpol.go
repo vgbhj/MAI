@@ -44,12 +44,16 @@ func PolynomLagrange(x, y []float64, n int) []float64 {
 			if i == j {
 				continue
 			}
+			 // Создание множителя (x - x_j)
 			xx := make([]float64, 2)
 			xx[0] = -x[j]
 			xx[1] = 1
+			// Умножение текущего li на (x - x_j)
 			li = PolyMult(li, xx)
+			// Нормировка: деление на (x_i - x_j)
 			li = PolyScalarMult(li, 1/(x[i]-x[j]), len(li))
 		}
+		// могут быть разные длины li и res, поэтому int(math.Max(...))
 		res = PolyPlus(res, PolyScalarMult(li, y[i], len(li)), int(math.Max(float64(len(li)), float64(len(res)))))
 	}
 	return res
@@ -57,8 +61,9 @@ func PolynomLagrange(x, y []float64, n int) []float64 {
 
 func diff(x, y []float64, l, r int) float64 {
 	if l+1 == r {
-		return (y[l] - y[r]) / (x[l] - x[r])
+		return (y[l] - y[r]) / (x[l] - x[r]) // Разделенная разность 1-го порядка
 	} else {
+		 // Рекурсивно вычисляем разделенные разности меньшего порядка
 		return (diff(x, y, l, r-1) - diff(x, y, l+1, r)) / (x[l] - x[r])
 	}
 }
@@ -70,10 +75,14 @@ func PolynomNewton(x, y []float64, n int) []float64 {
 	var li []float64
 	li = append(li, -x[0], 1)
 	for i := 1; i < n; i++ {
-		res = PolyPlus(res, PolyScalarMult(li, diff(x, y, 0, j), len(li)), int(math.Max(float64(len(li)), float64(len(res)))))
+		// Разделенная разность
+		dividedDiff := diff(x, y, 0, j)
+		term := PolyScalarMult(li, dividedDiff, len(li))
+		res = PolyPlus(res, term, int(math.Max(float64(len(li)), float64(len(res)))))
 		xx := make([]float64, 2)
 		xx[0] = -x[i]
 		xx[1] = 1
+		// умножение на (x - x_i)
 		li = PolyMult(li, xx)
 		j++
 	}

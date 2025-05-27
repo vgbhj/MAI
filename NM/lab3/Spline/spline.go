@@ -3,20 +3,20 @@ package spline
 import tridiagonal "github.com/AntonCkya/numeric/Tridiagonal"
 
 func Spline(x, f []float64, n int) ([]float64, []float64, []float64, []float64) {
-	a := make([]float64, n)
-	b := make([]float64, n)
-	c := make([]float64, n)
-	d := make([]float64, n)
+	a := make([]float64, n) // a[i] = f[i-1]
+	b := make([]float64, n) // Коэффициенты при (x - x_{i-1})
+	c := make([]float64, n) // Коэффициенты при (x - x_{i-1})^2
+	d := make([]float64, n) // Коэффициенты при (x - x_{i-1})^3
 
-	h := make([]float64, n)
+	h := make([]float64, n) // h[i] = x[i] - x[i-1]
 	for i := 1; i < n; i++ {
 		h[i] = x[i] - x[i-1]
 	}
 
-	ta := make([]float64, n-2)
-	tb := make([]float64, n-2)
-	tc := make([]float64, n-2)
-	td := make([]float64, n-2)
+	ta := make([]float64, n-2) // Нижняя диагональ (левый коэффициент)
+	tb := make([]float64, n-2) // Главная диагональ
+	tc := make([]float64, n-2) // Верхняя диагональ (правый коэффициент)
+	td := make([]float64, n-2) // Правая часть системы
 	for i := 0; i < n-2; i++ {
 		ta[i] = h[i+1]
 		tb[i] = 2 * (h[i+1] + h[i+2])
@@ -26,7 +26,7 @@ func Spline(x, f []float64, n int) ([]float64, []float64, []float64, []float64) 
 	ta[0] = 0
 	tc[n-3] = 0
 	solvedC := tridiagonal.SolveTridiagonal(ta, tb, tc, td, n-2)
-
+	// по формулам восст кефы
 	for i := 1; i < n; i++ {
 		a[i] = f[i-1]
 		if i > 1 {
