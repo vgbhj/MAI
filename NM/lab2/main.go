@@ -6,126 +6,120 @@ import (
 
 	equations "github.com/AntonCkya/numeric_methods/Equations"
 	systems "github.com/AntonCkya/numeric_methods/Systems"
+    plotter "github.com/AntonCkya/numeric_methods/Plotter"
 )
 
 func EquationRunner() {
-	PHI := func(x float64) float64 {
-		return 0.5 * math.Log2(5*x+2)
-		// return math.Log(4-3*x) / 2
-	}
-	DPHI := func(x float64) float64 {
-		return 5 / (2 * math.Log(2) * (5*x + 2))
-		// return -3 / (2 * (4 - 3*x))
-	}
-	F := func(x float64) float64 {
-		return math.Pow(4, x) - 5*x - 2
-		// return math.Pow(math.E, 2*x) + 3*x - 4
-	}
-	DF := func(x float64) float64 {
-		return math.Pow(4, x)*math.Log(4) - 5
-		// return 2*math.Pow(math.E, 2*x) + 3
-	}
-	D2F := func(x float64) float64 {
-		return math.Pow(4, x) * math.Log(4) * math.Log(4)
-		// return 4 * math.Pow(math.E, 2*x)
-	}
+    PHI := func(x float64) float64 {
+        return 0.5 * math.Log2(5*x+2)
+    }
+    DPHI := func(x float64) float64 {
+        return 5 / (2 * math.Log(2) * (5*x + 2))
+    }
+    // F(x) = 4^x - 5x - 2
+    F := func(x float64) float64 {
+        return math.Pow(4, x) - 5*x - 2
+    }
+    // f1(x) = 4^x, f2(x) = 5x + 2
+    f1 := func(x float64) float64 {
+        return math.Pow(4, x)
+    }
+    f2 := func(x float64) float64 {
+        return 5*x + 2
+    }
+    DF := func(x float64) float64 {
+        return math.Pow(4, x)*math.Log(4) - 5
+    }
+    D2F := func(x float64) float64 {
+        return math.Pow(4, x) * math.Log(4) * math.Log(4)
+    }
 
-	fmt.Println("2.1-----Equations-----")
-	fmt.Println("Simple Iterations:")
+    fmt.Println("2.1-----Equations-----")
+    fmt.Println("График функций для выбора положительного корня (начальное приближение):")
 
-	res, count := equations.SimpleIterationsMethod(PHI, DPHI, 1.0, 2.0, 0.001)
-	fmt.Println("answer: ", res)
-	fmt.Println("count: ", count)
+    // Построение графиков f1(x) и f2(x) на отрезке [0, 3]
+    var xs, ys1, ys2 []float64
+    for x := 0.0; x <= 3.0; x += 0.01 {
+        xs = append(xs, x)
+        ys1 = append(ys1, f1(x))
+        ys2 = append(ys2, f2(x))
+    }
+    // Покажем выбранное начальное приближение (например, x0=1.0)
+    plotter.Plot2(xs, ys1, xs, ys2, "equation_root", []string{"4^x", "5x+2"})
 
-	fmt.Println("\nNewton:")
+    fmt.Println("Simple Iterations:")
+    res, count := equations.SimpleIterationsMethod(PHI, DPHI, 1.0, 2.0, 0.001)
+    fmt.Println("answer: ", res)
+    fmt.Println("count: ", count)
 
-	res2, count2 := equations.NewtonMethod(F, DF, D2F, 0.001, 2)
-	fmt.Println("answer: ", res2)
-	fmt.Println("count: ", count2)
+    fmt.Println("\nNewton:")
+    res2, count2 := equations.NewtonMethod(F, DF, D2F, 0.001, 2)
+    fmt.Println("answer: ", res2)
+    fmt.Println("count: ", count2)
 }
 
 func SystemRunner() {
-	fmt.Println("2.2-----Systems-----")
+    fmt.Println("2.2-----Systems-----")
+    fmt.Println("Графики функций для выбора положительного решения (начальное приближение):")
 
-	PHI := []func([]float64) float64{
-		func(x []float64) float64 {
-			return math.Cos(x[1]) / 3
-			//return 0.3 - 0.1*x[0]*x[0] - 0.2*x[1]*x[1]
-		},
-		func(x []float64) float64 {
-			return math.Pow(math.E, x[0]) / 3
-			//return 0.7 - 0.2*x[0]*x[0] + 0.1*x[0]*x[1]
-		},
-	}
-	DPHI := [][]func([]float64) float64{
-		{
-			func(x []float64) float64 {
-				return 0
-				//return -0.2 * x[0]
-			},
-			func(x []float64) float64 {
-				return -math.Sin(x[1]) / 3
-				//return -0.4 * x[1]
-			},
-		},
-		{
-			func(x []float64) float64 {
-				return math.Pow(math.E, x[0]) / 3
-				//return -0.4*x[0] + 0.1*x[1]
-			},
-			func(x []float64) float64 {
-				return 0
-				//return 0.1 * x[0]
-			},
-		},
-	}
-	F := []func([]float64) float64{
-		func(x []float64) float64 {
-			return 3*x[0] - math.Cos(x[1])
-			//return 0.1*x[0]*x[0] + x[0] + 0.2*x[1]*x[1] - 0.3
-		},
-		func(x []float64) float64 {
-			return 3*x[1] - math.Pow(math.E, x[0])
-			//return 0.2*x[0]*x[0] + x[1] - 0.1*x[0]*x[1] - 0.7
-		},
-	}
-	DF := [][]func([]float64) float64{
-		{
-			func(x []float64) float64 {
-				return 3
-				//return 0.2*x[0] + 1
-			},
-			func(x []float64) float64 {
-				return math.Sin(x[1])
-				//return 0.4 * x[1]
-			},
-		},
-		{
-			func(x []float64) float64 {
-				return -math.Pow(math.E, x[0])
-				//return 0.4*x[0] - 0.1*x[1]
-			},
-			func(x []float64) float64 {
-				return 3
-				//return 1 - 0.1*x[0]
-			},
-		},
-	}
+    PHI := []func([]float64) float64{
+        func(x []float64) float64 {
+            return math.Cos(x[1]) / 3
+        },
+        func(x []float64) float64 {
+            return math.Pow(math.E, x[0]) / 3
+        },
+    }
 
-	fmt.Println("Simple Iterations:")
-	res, count := systems.SimpleIterationsMethod(PHI, DPHI, 0.0, 0.5, 0.5, 1, 0.0001)
-	for i := 0; i < 2; i++ {
-		fmt.Printf("x%d = %f\n", i+1, res[i])
-	}
-	fmt.Println("count: ", count)
+    // Для системы: строим графики x = phi1(y) и y = phi2(x)
+    var x1s, y1s, x2s, y2s []float64
+    for t := 0.0; t <= 2.0; t += 0.01 {
+        x1s = append(x1s, PHI[0]([]float64{0, t}))
+        y1s = append(y1s, t)
+        x2s = append(x2s, t)
+        y2s = append(y2s, PHI[1]([]float64{t, 0}))
+    }
+    // Покажем выбранное начальное приближение (например, x0=0.5, y0=1)
+    plotter.Plot2(x1s, y1s, x2s, y2s, "system_init", []string{"x=phi1(y)", "y=phi2(x)"})
 
-	fmt.Println("\nNewton:")
-	res2, count2 := systems.NewtonMethod(F, DF, 0.0, 0.0, 0.0001)
-	for i := 0; i < 2; i++ {
-		fmt.Printf("x%d = %f\n", i+1, res2[i])
-	}
-	fmt.Println("count: ", count2)
+    DPHI := [][]func([]float64) float64{
+        {
+            func(x []float64) float64 { return 0 },
+            func(x []float64) float64 { return -math.Sin(x[1]) / 3 },
+        },
+        {
+            func(x []float64) float64 { return math.Pow(math.E, x[0]) / 3 },
+            func(x []float64) float64 { return 0 },
+        },
+    }
+    F := []func([]float64) float64{
+        func(x []float64) float64 { return 3*x[0] - math.Cos(x[1]) },
+        func(x []float64) float64 { return 3*x[1] - math.Pow(math.E, x[0]) },
+    }
+    DF := [][]func([]float64) float64{
+        {
+            func(x []float64) float64 { return 3 },
+            func(x []float64) float64 { return math.Sin(x[1]) },
+        },
+        {
+            func(x []float64) float64 { return -math.Pow(math.E, x[0]) },
+            func(x []float64) float64 { return 3 },
+        },
+    }
 
+    fmt.Println("Simple Iterations:")
+    res, count := systems.SimpleIterationsMethod(PHI, DPHI, 0.0, 0.5, 0.5, 1, 0.0001)
+    for i := 0; i < 2; i++ {
+        fmt.Printf("x%d = %f\n", i+1, res[i])
+    }
+    fmt.Println("count: ", count)
+
+    fmt.Println("\nNewton:")
+    res2, count2 := systems.NewtonMethod(F, DF, 0.0, 0.0, 0.0001)
+    for i := 0; i < 2; i++ {
+        fmt.Printf("x%d = %f\n", i+1, res2[i])
+    }
+    fmt.Println("count: ", count2)
 }
 
 func main() {
