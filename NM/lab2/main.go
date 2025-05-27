@@ -10,58 +10,53 @@ import (
 )
 
 func EquationRunner() {
+	// эквивалентная функция x=phi(x)
     PHI := func(x float64) float64 {
-        return 0.5 * math.Log2(5*x+2)
-    }
-    DPHI := func(x float64) float64 {
-        return 5 / (2 * math.Log(2) * (5*x + 2))
-    }
-    // F(x) = 4^x - 5x - 2
-    F := func(x float64) float64 {
-        return math.Pow(4, x) - 5*x - 2
-    }
-    // f1(x) = 4^x, f2(x) = 5x + 2
-    f1 := func(x float64) float64 {
-        return math.Pow(4, x)
-    }
-    f2 := func(x float64) float64 {
-        return 5*x + 2
-    }
-    DF := func(x float64) float64 {
-        return math.Pow(4, x)*math.Log(4) - 5
-    }
-    D2F := func(x float64) float64 {
-        return math.Pow(4, x) * math.Log(4) * math.Log(4)
-    }
-
-    fmt.Println("2.1-----Equations-----")
-    fmt.Println("График функций для выбора положительного корня (начальное приближение):")
-
-    // Построение графиков f1(x) и f2(x) на отрезке [0, 3]
-    var xs, ys1, ys2 []float64
-    for x := 0.0; x <= 3.0; x += 0.01 {
+		return 0.5 * math.Log2(5*x+2)
+		// return math.Log(4-3*x) / 2
+	}
+	DPHI := func(x float64) float64 {
+		return 5 / (2 * math.Log(2) * (5*x + 2))
+		// return -3 / (2 * (4 - 3*x))
+	}
+	F := func(x float64) float64 {
+		return math.Pow(4, x) - 5*x - 2
+		// return math.Pow(math.E, 2*x) + 3*x - 4
+	}
+	DF := func(x float64) float64 {
+		return math.Pow(4, x)*math.Log(4) - 5
+		// return 2*math.Pow(math.E, 2*x) + 3
+	}
+	D2F := func(x float64) float64 {
+		return math.Pow(4, x) * math.Log(4) * math.Log(4)
+		// return 4 * math.Pow(math.E, 2*x)
+	}
+	var xs, ys1, ys2 []float64
+    for x := 0.0; x <= 2.5; x += 0.01 {
         xs = append(xs, x)
-        ys1 = append(ys1, f1(x))
-        ys2 = append(ys2, f2(x))
+        ys1 = append(ys1, math.Pow(4, x))
+        ys2 = append(ys2, 5*x+2)
     }
-    // Покажем выбранное начальное приближение (например, x0=1.0)
-    plotter.Plot2(xs, ys1, xs, ys2, "equation_root", []string{"4^x", "5x+2"})
+    plotter.Plot2(xs, ys1, xs, ys2, "equation_init", []string{"y=4^x", "y=5x+2"})
 
-    fmt.Println("Simple Iterations:")
-    res, count := equations.SimpleIterationsMethod(PHI, DPHI, 1.0, 2.0, 0.001)
-    fmt.Println("answer: ", res)
-    fmt.Println("count: ", count)
 
-    fmt.Println("\nNewton:")
-    res2, count2 := equations.NewtonMethod(F, DF, D2F, 0.001, 2)
-    fmt.Println("answer: ", res2)
-    fmt.Println("count: ", count2)
+	fmt.Println("2.1-----Equations-----")
+	fmt.Println("Simple Iterations:")
+
+	res, count := equations.SimpleIterationsMethod(PHI, DPHI, 1.0, 2.0, 0.001)
+	fmt.Println("answer: ", res)
+	fmt.Println("count: ", count)
+
+	fmt.Println("\nNewton:")
+
+	res2, count2 := equations.NewtonMethod(F, DF, D2F, 0.001, 2)
+	fmt.Println("answer: ", res2)
+	fmt.Println("count: ", count2)
 }
+
 
 func SystemRunner() {
     fmt.Println("2.2-----Systems-----")
-    fmt.Println("Графики функций для выбора положительного решения (начальное приближение):")
-
     PHI := []func([]float64) float64{
         func(x []float64) float64 {
             return math.Cos(x[1]) / 3

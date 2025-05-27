@@ -40,12 +40,15 @@ func VectorSubstr(a []float64, b []float64) []float64 {
 }
 
 func SimpleIterationsMethod(phi []func([]float64) float64, dphi [][]func([]float64) float64, a1, b1, a2, b2, eps float64) ([]float64, int) {
+	// коэффициент сжимаемости
 	q := GetQ(dphi, a1, b1, a2, b2)
 	x := append(make([]float64, 0), a1, b1)
 	dx := math.Inf(+1)
 	count := 0
 	for eps < dx*(q/(1-q)) {
-		xNew := append(make([]float64, 0), phi[0](x), phi[1](x))
+		xNew := make([]float64, 2)
+		xNew[0] = phi[0](x)
+		xNew[1] = phi[1](x)
 		dx = VectorNormal(VectorSubstr(xNew, x))
 		x = xNew
 		count++

@@ -4,7 +4,7 @@ import "math"
 
 func SimpleIterationsMethod(phi, dphi func(float64) float64, a, b, eps float64) (float64, int) {
 	q := math.Min(math.Abs(dphi(a)), math.Abs(dphi(b)))
-	x := b
+	x := (a+b)/2
 	dx := math.Inf(+1)
 	count := 0
 	for eps < dx*(q/(1-q)) {
