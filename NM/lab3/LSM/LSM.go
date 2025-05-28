@@ -56,6 +56,7 @@ func A(x, y []float64, p, n int) []float64 {
 			a[i][j] = math.Pow(x[i], float64(j))
 		}
 	}
+	// AtA*a=At*y
 	at := MatrixTranspose(a)
 	r := MatrixVectorMult(at, y)
 	ata := MatrixMult(at, a)
